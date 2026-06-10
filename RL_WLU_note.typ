@@ -1614,18 +1614,32 @@ for every $j = 0,1,2,dots$.
 \
 === 1. Motivating example: MC estimation
 \
+~~~~Monte Carlo estimation refers to a broad class of techniques that rely on repeated random sampling to solve approximation problems.\
+~~~~It does not require the model.\
+\
 
+*Law of Large Numbers*\
+~~~~For a random variable $X$. Suppose ${x_j}_(j=1)^N$ are some iid samples. Let
+$
+  overline(x) = 1/N sum_(j=1)^N x_j
+$
+be the average of the samples. Then,
+$
+  E[overline(x)] = E[X], #h(2em)
+  V a r[overline(x)] = 1/N V a r[X].
+$
+~~~~As a result, $overline(x)$ is an unbiased estimate of $E[X]$ and its variance decreases to zero as $N$ increases to infinity.
 
+(The samples must be iid (independent and identically distributed))
+\
+\
+\
+~~~~Why mean estimation?\
+~~~~Because state value and action
+value are defined as expectations of random variables!
 
-
-
-
-
-
-
-
-
-
+\
+\
 \
 \
 \
@@ -1634,8 +1648,94 @@ for every $j = 0,1,2,dots$.
 
 === 2. MC Basic Algorithm
 \
+~~~~Policy iteration has two steps in each iteration:
+$
+  cases(
+    "PE : " v_(π_k) = r_(π_k) + gamma P_(π_k) v_(π_k),
+    "PI : " π_(k+1) = "arg max"_π (r_π + gamma P_π v_(π_k))
+  )
+$
+
+~~~~The elementwise form of PI is:
+$
+  π_(k+1)(s) & = "arg max"_π sum_a π(a|s) [ sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_(π_k)(s') ] \
+             & = "arg max"_π sum_a π(a|s) q_(π_k)(s,a), #h(2em) s in cal(S)
+$
+
+~~~~The key is $q_(π_k)(s,a)$! (Because the greedy policy will choose the greatest $q$)
+\
+\
+\
+- *Two expressions of action value*:
+
+- - *Expression 1 requires the model*:
+  $
+    q_(π_k)(s,a) = sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_(π_k)(s')
+  $
+
+- - *Expression 2 does not require the model*:
+  $
+    q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ]
+  $
+
+#rect[
+  ~~~~Idea to achieve model-free RL: \
+  ~~~~We can use expression 2 to calculate $q_(π_k)(s,a)$ based on _data_ (samples or experiences)!
+]
+
+\
+\
+\
+- *The procedure of Monte Carlo estimation of action values*:
+
+① Starting from $(s,a)$, following policy $π_k$, generate an episode.\
+② The return of this episode is $g(s,a)$\
+③ $g(s,a)$ is a sample of $G_t$ in
+$
+  q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ]
+$
+④ Suppose we have a set of episodes and hence ${g^((j))}(s,a)}$. Then,
+$
+  q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ] approx 1/N sum_(i=1)^N g^((i))}(s,a).
+$
+
+~~~~Fundamental idea: When model is unavailable, we can use _data_.
+
+\
+\
+\
+- *MC basic*
+
+~~~~Description of the algorithm:
+
+#rect[
+  ~~~~Given an initial policy $π_0$, there are two steps at the $k$th iteration.
+
+  - - Step 1: *policy evaluation*. This step is to #underline[_obtain $q_(π_k)(s,a)$ for all $(s,a)$_]. Specifically, for each action-state pair $(s,a)$, run an infinite number of (or sufficiently many) episodes. The #underline[average] of their returns is used to approximate $q_(π_k)(s,a)$.
+
+  - - Step 2: *policy improvement*. This step is to solve $π_(k+1)(s) = "arg max"_π sum_a π(a|s) q_(π_k)(s,a)$ for all $s in cal(S)$. The greedy optimal policy is $π_(k+1)(a_k^* | s) = 1$ where $a_k^* = "arg max"_a q_(π_k)(s,a)$.
+]
+~~~~Exactly the same as the policy iteration algorithm, except:
+- - Estimate $q_(π_k)(s,a)$ directly, instead of solving $v_(π_k)(s)$.
 
 
+#figure(
+  image("lec5_MCbasic_pseudocode.png", width: 100%),
+)
+
+
+
+#rect[
+  MC Basic is a variant of the policy iteration algorithm.
+
+  - The model-free algorithms are built up based on model-based ones. It is, therefore, necessary to understand model-based algorithms first before studying model-free algorithms.
+
+  - MC Basic is useful to reveal the core idea of MC-based model-free RL, but not practical due to *_low efficiency_*.
+
+  - Why does MC Basic estimate *_action values_* instead of *_state values_*? That is because state values cannot be used to improve policies directly. When models are not available, we should directly estimate action values.
+
+  - Since policy iteration is convergent, the convergence of MC Basic is also guaranteed to be convergent given sufficient episodes.
+]
 
 
 
