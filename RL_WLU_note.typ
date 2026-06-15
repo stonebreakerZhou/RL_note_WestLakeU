@@ -1737,12 +1737,242 @@ $
   - Since policy iteration is convergent, the convergence of MC Basic is also guaranteed to be convergent given sufficient episodes.
 ]
 
+\
+\
+\
+\
+\
+\
+\
+
+=== 3. MC Exploring Starts
+\
+~~~~Consider a grid-world example, following a policy $π$, we can get an *episode* such as
+$
+  s_1 ->^(a_2) s_2 ->^(a_4) s_1 ->^(a_2) s_2 ->^(a_3) s_5 ->^(a_1) dots
+$
+\
+- *Visit*: every time a *_state-action pair_* appears in the episode, it is called a visit of that state-action pair.
+\
+- Methods to use the data: *Initial-visit method*
+  - Just calculate the return and approximate $q_π (s_1, a_2)$.
+  - This is what the MC Basic algorithm does.
+  - Disadvantage: #underline[Not fully utilize the data.]
+
+
+
+
+
+#pagebreak()
+
+
+
+
+
+~~~~The episode also visits other state-action pairs.
+
+#figure(
+  image("lec5_MC_exploring_stpairs.png", width: 100%),
+)
 
 
 
 
 
 
+
+
+~~~~Using this episode, we can estimate $q_π (s_1,a_2)$, $q_π (s_2,a_4)$, $q_π (s_2,a_3)$, $q_π (s_5,a_1)$, ...
+\
+\
+#align(center)[
+  #rect[
+    *Improvements: Data-efficient methods*:\
+    ① *first-visit method*\
+    ② *every-visit method*
+  ]]
+\
+
+- Another aspect in MC-based RL is *_when to update the policy_*. There are two methods.
+
+- - ① The first method is, in the policy evaluation step, to collect _all the episodes_ starting from a state-action pair and then use the average return to approximate the action value. This is the one adopted by the MC Basic algorithm.
+
+  - The problem of this method is that the agent has to wait until all episodes have been collected.
+\
+- - ② The second method uses the return of a _single episode_ to approximate the action value.
+  - In this way, we can improve the policy _episode-by-episode_.
+
+\
+\
+\
+Will the second method cause problems?
+
+~~~~One may say that the return of a single episode cannot accurately approximate the corresponding action value.\
+~~~~In fact, we have done that in the truncated policy iteration algorithm introduced in the last chapter! (finite steps of approximation)
+
+- *Generalized policy iteration (GPI):*
+~~~~It's not a specific algorithm.\
+~~~~It refers to the general idea or framework of #underline[switching between policy-_evaluation_ and policy-_improvement_ processes].\
+~~~~Many model-based and model-free RL algorithms fall into this framework.
+
+\
+\
+\
+\
+\
+
+- *MC exploring starts*
+\
+~~~~If we combine improvements such as first/every-visit, episode‑by‑episode updates, and backward return accumulation, we get a new algorithm called MC Exploring Starts, yet it still relies on the *exploring‑starts assumption*.
+
+
+#figure(
+  image("lec5_MC_exploring_starts.png", width: 100%),
+)
+
+\
+\
+\
+\
+\
+#rect[
+  Q: What is *exploring starts*?\
+  A: Exploring Starts (in Monte Carlo methods) is the assumption that *every episode has a non-zero probability of starting with any state-action pair $(s,a)$*. In theory, this allows us to begin a trajectory from any arbitrary state and action.
+]
+
+
+
+
+#pagebreak()
+
+
+
+
+- Why do we need to consider exploring starts?
+
+~~~~① In theory, only if every action value for every state is well explored, can we select the optimal actions correctly.\
+~~~~On the contrary, if an action is not explored, this action may happen to be the optimal one and hence be missed.
+
+~~~~② In practice, exploring starts is difficult to achieve. For many applications, especially those involving physical interactions with environments, it is difficult to collect episodes starting from every state-action pair.
+
+~~~~Therefore, there is a gap between theory and practice.
+
+~~~~Can we remove the requirement of exploring starts? We next show that we can do that by using _*soft policies*_.
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+=== 4. MC without exploring starts
+\
+~~~~Previously, we've introduced determistic and stochastic policies, here comes soft policies.
+\
+
+- *Soft policies*
+
+- - A policy is called soft if #underline[the probability to take any action is positive.]
+
+~~~~Why introduce soft policies?\
+~~~~With a soft policy, a few episodes that are _sufficiently long_ can visit _every_ state-action pair for sufficiently many times.\
+~~~~Then, we do not need to have a large number of episodes starting from every state-action pair. Hence, the requirement of exploring starts can thus be removed.
+
+
+
+
+What soft policies will we use? \
+Answer: *$epsilon$-greedy policies*
+
+- What is an $epsilon$-greedy policy?
+#align(center)[
+  #rect[
+    $
+      pi(a|s) = cases(
+        1 - frac(epsilon, |cal(A)(s)|) (|cal(A)(s)| - 1), "for the greedy action",
+        frac(epsilon, |cal(A)(s)|), "for the other actions"
+      )
+    $
+  ]]
+~~~~where $epsilon in [0,1]$ and $|cal(A)(s)|$ is the number of actions for $s$.
+\
+
+- - The chance to choose the greedy action is always _greater_ than other actions, because
+  $
+    1 - epsilon / (|cal(A)(s)|) (|cal(A)(s)| - 1)) = 1 - epsilon + frac(epsilon, |cal(A)(s)|) >= epsilon / (|cal(A)(s)|).
+  $
+\
+\
+- Why use $epsilon$-greedy? \
+~~~~Balance between *_exploitation_*(greedy) and *_exploration_*(less greedy).\
+
+~~~~① When $epsilon = 0$, it becomes greedy! \
+~~~~Less exploration but more exploitation!\
+~~~~② When $epsilon = 1$, it becomes a uniform distribution. \
+~~~~More exploration but less exploitation.
+
+\
+\
+
+- How to embed $epsilon$-greedy into the MC-based RL algorithms?
+
+- - *Originally*, the _policy improvement step_ in MC Basic and MC Exploring Starts is to solve
+$
+  π_(k+1)(s) = "arg max"_(π in Pi) sum_a π(a|s) q_(π_k)(s,a).
+$
+where #underline[$Pi$ denotes the set of all possible policies].
+\
+
+~~~~The optimal policy here is
+$
+  π_(k+1)(a|s) = cases(
+    1 #h(1em)"if" a = a_k^*,
+    0 #h(1em)"if" a != a_k^*,
+  )
+$
+where $a_k^* = "arg max"_a q_(π_k)(s,a)$.
+
+
+
+
+#pagebreak()
+
+
+
+
+
+- - *Now*, the _policy improvement step_ is changed to solve
+$
+  π_(k+1)(s) = "arg max"_(π in Pi_epsilon) sum_a π(a|s) q_(π_k)(s,a),
+$
+where #underline[$Pi_epsilon$ denotes the set of all $epsilon$-greedy policies *_with a fixed value of $epsilon$_*.]
+
+~~~~The optimal policy here is
+$
+  π_(k+1)(a|s) = cases(
+    1 - (|cal(A)(s)| - 1)/(|cal(A)(s)|) epsilon #h(1em) "if" a = a_k^*,
+    1/(|cal(A)(s)|) epsilon #h(4em) "if" a != a_k^*
+  )
+$
+
+~~~~① MC $epsilon$-Greedy is the s*_ame_* as that of MC Exploring Starts except that the former uses $epsilon$-greedy policies.\
+
+~~~~② It does not require exploring starts, but still requires to visit all state-action pairs in a different form.
+\
+\
+#figure(
+  image("lec5_MC_epsilon_greedy.png", width: 100%),
+)
+
+Notice: we use *_every-visit_* here because of the _sufficiently long_ episodes could contain many visits to a certain $(s, a)$.
+
+\
+\
+\
 
 
 
@@ -1750,3 +1980,9 @@ $
 
 
 #pagebreak()
+
+
+
+
+
+
