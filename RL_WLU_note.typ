@@ -1973,6 +1973,41 @@ Notice: we use *_every-visit_* here because of the _sufficiently long_ episodes 
 \
 \
 \
+\
+\
+\
+\
+\
+\
+
+- Exploring Ability
+\
+~~~~When ε = 1, the policy (uniform distribution) has the strongest
+exploration ability.
+\
+
+~~~~When ε is small, the exploration ability of the policy is also small.
+
+\
+- Compared to greedy policies : \
+~~~~① The advantage of ε-greedy policies is that they have stronger
+exploration ability so that the exploring starts condition is not required.\
+
+~~~~② The disadvantage is that ε-greedy polices are not optimal in general (we can only show that there always exist greedy policies that are optimal).\
+~~~~The final policy given by the MC ε-Greedy algorithm is only optimal in the set Πε of all ε-greedy policies.\
+~~~~ε cannot be too large.
+\
+~~~~In practical, we 'd set $epsilon$ to a _small_ value so that the final policy given is similar to that given by the optimal greedy policy.
+
+\
+
+- Consistency
+
+~~~~The action of the biggest prob taken in the optimal $epsilon$-greedy policy is _perhaps_ in consistency with the optimal greedy policy.
+\
+~~~~As $epsilon$ grow bigger, that consistency descend!(that's why when we use $epsilon$-greedy we have to apply a small $epsilon$ !)
+\
+
 
 
 
@@ -1980,6 +2015,901 @@ Notice: we use *_every-visit_* here because of the _sufficiently long_ episodes 
 
 
 #pagebreak()
+
+
+
+
+
+
+
+
+
+
+
+
+
+#place(top, scope: "parent", float: true)[
+  #align(center + horizon)[  // horizon 让它垂直居中页顶区域，更美观
+    #text(font: "Georgia", weight: "bold", size: 24pt)[§ Lec VI]  //
+    #v(0em)
+    #line(length: 100%, stroke: 1pt)  // 可选：加一条装饰线
+  ]
+]
+
+== Stochastic Approximation and Stochastic Gradient Descent
+
+\
+=== 1. Motivating example: mean estimation
+\
+- Revisit the mean estimation problem:
+- - Consider a random variable $X$. Our aim is to estimate $EE[X]$. Suppose that we collected a sequence of iid samples ${x_i}_{i=1}^N$.
+- - The expectation of $X$ can be approximated by
+  $
+    EE[X] approx overline(x) := 1/N sum_(i=1)^N x_i.
+  $
+
+We already know from the last lecture:\
+~~~~① This approximation is the basic idea of Monte Carlo estimation.\
+~~~~② We know that $overline(x) -> EE[X]$ as $N -> infinity$.
+\
+
+Why do we care about mean estimation so much?\
+~~~~Many values in RL such as state/action values are defined as means.
+
+\
+\
+- New question: how to calculate the mean $overline(x)$?
+$
+  EE[X] approx overline(x) := 1/N sum_(i=1)^N x_i.
+$
+
+We have 2 ways.
+\
+\
+~~~~① The first way, which is trivial, is to *collect all* the samples then calculate the average.\
+
+~~~~The drawback of such way is that, if the samples are collected one by one over a period of time, we have to _wait_ until all the samples to be collected.
+\
+\
+
+~~~~② The second way can avoid this drawback because it calculates the average in an incremental and iterative manner.
+\
+\
+~~~~In particular, suppose
+$
+  w_(k+1) = 1/k sum_(i=1)^k x_i, quad k = 1,2,dots
+$
+and hence
+$
+  w_k = 1/(k-1) sum_(i=1)^(k-1) x_i, quad k = 2,3,dots
+$
+~~~~Then, $w_(k+1)$ can be expressed in terms of $w_k$ as
+$
+  w_(k+1) = 1/k sum_(i=1)^k x_i & = 1/k ( sum_(i=1)^(k-1) x_i + x_k ) \
+                                & = 1/k ( (k-1) w_k + x_k ) \
+                                & = w_k - 1/k (w_k - x_k).
+$
+
+~~~~Therefore, we obtain the following iterative algorithm:
+#align(center)[
+  #rect[
+    *$ w_(k+1) = w_k - 1/k (w_k - x_k). $*
+  ]]
+\
+~~~~This is an incremental form of calculation of $overline(x)$.
+
+
+~~~~An advantage of this algorithm is that a mean estimate can be obtained _immediately_ once a sample is received. Then, the mean estimate can be used for other purposes immediately.\
+~~~~The mean estimate is not accurate in the beginning due to insufficient samples (that is $w_k != EE[X]$). \
+~~~~However, it is better than nothing. As more samples are obtained, the estimate can be improved gradually (that is $w_k -> EE[X]$ as $k -> infinity$).
+
+
+
+
+#pagebreak()
+
+
+
+
+- Furthermore, consider an algorithm with a more general expression:
+#align(center)[
+  #rect[
+    $
+      w_(k+1) = w_k - alpha_k (w_k - x_k)
+    $
+  ]]
+where $1/k$ is replaced by $alpha_k > 0$.
+
+- - Does this algorithm still converge to the mean $EE[X]$? We will show that the answer is yes if ${alpha_k}$ satisfy some mild conditions.
+
+- - We will also show that this algorithm is a special *SA algorithm* and also a special *_stochastic gradient descent algorithm_*.
+
+- - In the next lecture, we will see that the temporal-difference algorithms have similar (but more complex) expressions.
+
+
+\
+\
+\
+\
+\
+\
+
+=== 2. Robins-Monro (RM) alogorithm
+\
+
+- *Stochastic approximation (SA)*
+
+~~~~SA refers to a broad class of _stochastic iterative_ algorithms solving root finding or optimization problems.\
+
+~~~~Compared to many other root-finding algorithms such as gradient-based methods, SA is powerful in the sense that *it does not require to know the _expression_ of the objective function nor its derivative*.
+\
+\
+\
+
+- *Robbins-Monro (RM) algorithm*
+~~~~This is a pioneering work in the field of stochastic approximation.\
+~~~~The famous stochastic gradient descent algorithm is a special form of the RM algorithm.
+~~~~It can be used to analyze the mean estimation algorithms introduced in the beginning.
+
+
+
+- Problem statement
+
+~~~~Suppose we would like to find the root of the equation
+$
+  g(w) = 0,
+$
+where $w in RR$ is the variable to be solved and $g : RR -> RR$ is a function.\
+\
+
+~~~~① Many problems can be eventually converted to this root finding problem. For example, suppose $J(w)$ is an objective function to be minimized. Then, the _optimization problem_ can be converged to
+$
+  g(w) = nabla_w J(w) = 0.
+$
+~~~~② Note that an equation like $g(w) = c$ with $c$ as a constant can also be converted to the above equation by rewriting $g(w) - c = 0$ as a new function.
+\
+\
+\
+
+- #underline[How to calculate the root of $g(w) = 0$?]
+
+- - If the expression of $g$ or its derivative is known, there are many numerical algorithms that can solve this problem.\
+
+- - What if the expression of the function $g$ is *unknown*? For example, _*the function is represented by an artificial neuron network*_.
+
+\
+\
+\
+
+- The Robbins-Monro (RM) algorithm can solve this problem:
+#align(center)[
+  #rect[
+    *$ w_(k+1) = w_k - a_k tilde(g)(w_k, eta_k), k = 1,2,3,dots $*]]
+
+where\
+~~~~① $w_k$ is the $k$th estimate of the root\
+~~~~② *$tilde(g)(w_k, eta_k) = g(w_k) + eta_k$* is the $k$th _noisy_ observation ($eta_k$ is the noise)\
+~~~~③ $a_k$ is a positive coefficient.
+
+
+
+#pagebreak()
+
+
+
+The function $g(w)$ is a *black box*! \
+This algorithm relies on data:\
+~~~~① _*Input sequence*_: ${w_k}$\
+~~~~② _*Noisy output sequence*_: ${tilde(g)(w_k, eta_k)}$
+\
+\
+~~~~Philosophy: without model, we need data!\
+~~~~Here, the model refers to the expression of the function.
+
+
+\
+\
+\
+
+- *Convergence property*
+\
+- - Illustrative example
+
+Solve:
+$g(w) = tanh(w - 1)$ \
+The true root of $g(w) = 0$ is $w^* = 1$.
+
+Parameters: $w_1 = 3$, $a_k = 1/k$, $eta_k equiv 0$ (no noise for simplicity).
+
+The RM algorithm in this case becomes
+$
+  w_(k+1) = w_k - 1/k g(w_k)
+$
+since $tilde(g)(w_k, eta_k) = g(w_k)$ when $eta_k = 0$.
+
+#figure(
+  image("lec6_RM_convergence_example.png", width: 60%),
+)
+
+
+
+
+
+
+
+result: $w_k$ converges to the true root $w^* = 1.0$.
+
+
+Intuition: $w_(k+1)$ is closer to $w^*$ than $w_k$.
+
+~~~① When $w_k > w^*$, we have $g(w_k) > 0$. Then $w_(k+1) = w_k - a_k g(w_k) < w_k$ and hence $w_(k+1)$ is closer to $w^*$ than $w_k$.\
+~~~~② When $w_k < w^*$, we have $g(w_k) < 0$. Then $w_(k+1) = w_k - a_k g(w_k) > w_k$ and $w_(k+1)$ is closer to $w^*$ than $w_k$.
+
+\
+
+
+- - Convegence theorem
+#figure(
+  image("lec6_Robbins-Monro_theorem.png", width: 100%),
+)
+
+Explanation of the three conditions:
+
+~~~~① $0 < c_1 <= nabla_w g(w) <= c_2$ for all $w$:\
+
+~~~~$g$ is *monotonically increasing*, which ensures that the root of $g(w) = 0$ exists and is unique.\
+~~~~The gradient is bounded from the above and must be positive(_convex_ original function).
+\
+\
+~~~~② $sum_(k=1)^infinity a_k = infinity$ and $sum_(k=1)^infinity a_k^2 < infinity$\
+
+~~~~The condition of $sum_(k=1)^infinity a_k^2 < infinity$ ensures that *$a_k$ converges to zero as $k arrow infinity$*.\
+
+~~~~The condition of $sum_(k=1)^infinity a_k = infinity$ ensures that *$a_k$ do not converge to zero too fast*.
+\
+\
+~~~~③ $EE[eta_k | cal(H)_k] = 0$ and $EE[eta_k^2 | cal(H)_k] < infinity$\
+
+~~~~A special yet common case is that $\{eta_k\}$ is an *iid* stochastic sequence satisfying *$EE[eta_k] = 0$* and $EE[eta_k^2] < infinity$. The observation error $eta_k$ _is not required to be Gaussian_.
+
+
+\
+\
+\
+
+Examine the second condition more closely:
+$
+  sum_(k=1)^infinity a_k^2 < infinity #h(2em)
+  sum_(k=1)^infinity a_k = infinity
+$
+
+~~~~*①* First, $sum_(k=1)^infinity a_k^2 < infinity$ indicates that $a_k -> 0$ as $k -> infinity$.\
+
+~~~~Why is this condition important?
+Since
+$
+  w_(k+1) - w_k = -a_k tilde(g)(w_k, eta_k),
+$
+~~~~If $a_k -> 0$, then $a_k tilde(g)(w_k, eta_k) -> 0$ and hence $w_(k+1) - w_k -> 0$.\
+~~~~We need the fact that $w_(k+1) - w_k -> 0$ if $w_k$ converges eventually.\
+~~~~If $w_k -> w^*$, $g(w_k) -> 0$ and $tilde(g)(w_k, eta_k)$ is dominated by $eta_k$.
+\
+\
+
+~~~~*②* Second, $sum_(k=1)^infinity a_k = infinity$ indicates that $a_k$ should not converge to zero too fast.
+\
+\
+~~~~Why is this condition important?
+
+~~~~Summarizing $w_2 = w_1 - a_1 tilde(g)(w_1, eta_1)$, $w_3 = w_2 - a_2 tilde(g)(w_2, eta_2)$, ..., $w_(k+1) = w_k - a_k tilde(g)(w_k, eta_k)$ leads to
+$
+  w_infinity- w_1 = sum_(k=1)^infinity a_k tilde(g)(w_k, eta_k).
+$
+
+~~~~Suppose $w_infinity = w^*$. If $sum_(k=1)^infinity a_k < infinity$, then $sum_(k=1)^infinity a_k tilde(g)(w_k, eta_k)$ may be _bounded_. Then, if the initial guess $w_1$ is chosen arbitrarily far away from $w^*$, the above equality would be invalid.
+\
+~~~~Thus, it enables us to _choose the intial guess $w_1$ arbitarily_.
+
+\
+\
+
+Recall our typical choice:
+$ a_k = 1/k $
+It satifies that $sum_(k=1)^infinity 1/k arrow infinity$ and $sum_(k=1)^infinity 1/k^2 < infinity$.
+
+\
+\
+
+~~~~Note that these three are _sufficient but not necessary conditions_.\
+~~~~If the three conditions are not satisfied, the algorithm may not work.\
+
+~~~~For example, $g(w) = w^3 −5$ does not satisfy the first condition on gradient boundedness. If the initial guess is good, the algorithm can converge (locally). Otherwise, it will diverge.\
+
+~~~~We will see that $a_k$ is often selected as a *sufficiently small constant* in
+many RL algorithms. Although the second condition is not satisfied in this case, the algorithm can still work effectively.
+
+\
+\
+\
+\
+
+- *RM's Application to mean estimation*
+\
+- - Recall that
+$
+  w_(k+1) = w_k + alpha_k (x_k - w_k)
+$
+is the mean estimation algorithm.
+
+We know that\
+~~~~If $alpha_k = 1/k$, then $w_(k+1) = 1/k sum_(i=1)^k x_i$.\
+~~~~If $alpha_k$ is not $1/k$, the convergence was not analyzed.\
+
+Next, we show that this algorithm is *_a special case of the RM algorithm_*. Then, its convergence naturally follows.
+
+\
+\
+
+- -
+~~~~1) Consider a function:
+$
+  g(w) := w - EE[X].
+$
+~~~~Our aim is to solve $g(w) = 0$. If we can do that, then we can obtain $EE[X]$.
+\
+\
+
+~~~~2) The observation(noisy samples) we can get is (because we can only obtain samples of $X$)
+$
+  tilde(g)(w,x) := w - x,
+$
+
+Note that
+$
+  tilde(g)(w, eta) = w - x & = w - x + EE[X] - EE[X] \
+                           & = (w - EE[X]) + (EE[X] - x) \
+                           & := g(w) + eta.
+$
+
+
+
+~~~~3) The RM algorithm for solving $g(x) = 0$ is
+$
+  w_(k+1) = w_k - alpha_k tilde(g)(w_k, eta_k) = w_k - alpha_k (w_k - x_k)
+$
+which is exactly the mean estimation algorithm. The convergence naturally follows.
+
+\
+\
+#rect[
+  ~~~~To prove that the mean estimation with a step size other than $1/k$ is a special case of the RM algorithm, the reasoning is as follows:
+
+  ~~~~The RM algorithm iteratively finds the root of $g(w)=0$.
+
+  ~~~~We reformulate the mean estimation problem as finding the root of $g(w)=w−E[X]=0$.
+
+  ~~~~Given observed samples $x$, we define a computable function $tilde(g)(w,x)=w−x$ (where $w$ is the current estimate and $x$ is the new sample).
+
+  ~~~~Its expectation is $E[tilde(g)(w,x)]=g(w)$, so it meets the prerequisite for applying RM.
+
+  ~~~~Therefore, applying the RM algorithm yields the mean estimation algorithm.
+]
+
+\
+\
+\
+#rect[
+  Conclusion:\
+  Mean estimation algorithm = RM algorithm applied to this specific problem: $ g(w)=w−E[X]=0 $
+]
+
+\
+\
+\
+\
+\
+\
+\
+\
+- - Dvoretzky's theorem
+#figure(
+  image("lec6_Dvoretzky_theorem.png", width: 100%),
+)
+
+~~~~A more general result than the RM theorem. It can be used to prove the RM theorem.\
+~~~~It can also directly analyze the mean estimation problem.\
+~~~~An extension of it can be used to analyze Q-learning and TD learning algorithms.
+
+
+\
+\
+\
+\
+\
+\
+\
+
+=== 3. Stochastic gradient descent
+\
+
+~~~~Suppose we aim to solve the following optimization problem:
+$
+  min_w J(w) = EE[ f(w, X) ]
+$
+
+~~~~$w$ is the parameter to be optimized.\
+~~~~$X$ is a random variable. The expectation is with respect to $X$. (X has a fixed but unknown probability distribution)\
+~~~~$w$ and $X$ can be either scalars or vectors. The function $f(·)$ is a scalar.
+\
+\
+\
+- *Algorithm*
+
+- - *Method 1: gradient descent (GD)*
+
+$
+  w_(k+1) = w_k - alpha_k nabla_w EE[ f(w_k, X) ] = w_k - alpha_k EE[ nabla_w f(w_k, X) ]
+$
+
+~~~~Drawback: the *_expected value_* is difficult to obtain.
+
+- - *Method 2: batch gradient descent (BGD)*
+
+$
+  EE[ nabla_w f(w_k, X) ] approx 1/n sum_(i=1)^n nabla_w f(w_k, x_i)
+$
+
+$
+  w_(k+1) = w_k - alpha_k 1/n sum_(i=1)^n nabla_w f(w_k, x_i)
+$
+~~~~Drawback: it requires _many samples in each iteration for each $w_k$_. (similar to Monte-Carlo method)
+\
+
+- - *Method 3: stochastic gradient descent (SGD)*
+
+#align(center)[
+  #rect[
+    *$ w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k), $*
+  ]]
+~~~~Compared to GD: Replace the *true gradient* $EE[ nabla_w f(w_k, X) ]$ by the *stochastic gradient* $nabla_w f(w_k, x_k)$.\
+
+~~~~Compared to BGD: let *$n = 1$*.
+
+\
+\
+\
+\
+\
+\
+
+- *SGD - Example and application*
+\
+We next consider an example:
+$
+  min_w J(w) = EE[ f(w, X) ] = EE[ 1/2 ||w - X||^2 ]
+$
+where
+$
+  f(w, X) = (||w - X||^2) / 2, quad nabla_w f(w, X) = w - X.
+$
+
+\
+
+Exercise 1: Show that the optimal solution is $w^* = EE[X]$.\
+
+Exercise 2: Write out the GD algorithm for solving this problem.\
+
+Exercise 3: Write out the SGD algorithm for solving this problem.
+
+
+Answer 1:\
+~~~~When achieving the optimal solution, we have $nabla_w J(w) = 0$, that is $EE[nabla_w f(w, x)] = 0$. Thus $EE[w-X] = 0$, $w^* = EE[X]$.
+\
+\
+Answer 2: \
+~~~~The GD algorithm for solving the above problem is
+$
+  w_(k+1) & = w_k - alpha_k nabla_w J(w_k) \
+          & = w_k - alpha_k EE[ nabla_w f(w_k, X) ] \
+          & = w_k - alpha_k EE[ w_k - X ].
+$
+
+Answer 3:\
+~~~~The SGD algorithm for solving the above problem is
+$
+  w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k) = w_k - alpha_k (w_k - x_k).
+$
+\
+~~~~Note that the SGD algorithm is the same as the mean estimation algorithm we presented before. *That mean estimation algorithm is a special SGD algorithm.*\
+~~~~(the problem descriptions are different: before it asked for the mean of $X$, now it is described as an optimization problem).
+
+\
+\
+\
+\
+\
+
+- *Convergence analysis*
+\
+- - *From GD to SGD:*
+
+
+$
+  w_(k+1) = w_k - alpha_k EE[ nabla_w f(w_k, X) ]
+$
+#align(center)[$↓$]
+$
+  w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k)
+$
+$nabla_w f(w_k, x_k)$ can be viewed as a _noisy measurement_ of $EE[ nabla_w f(w, X) ]$:
+$
+  nabla_w f(w_k, x_k) = EE[ nabla_w f(w, X) ] + underbrace(nabla_w f(w_k, x_k) - EE[ nabla_w f(w, X) ], eta)
+$
+
+Since
+$
+  nabla_w f(w_k, x_k) != EE[ nabla_w f(w, X) ],
+$
+*whether $w_k -> w^*$ as $k -> infinity$ by SGD?*
+
+\
+\
+
+- - *Proof thoughtline*:
+
+~~~~We'll show that #underline[*SGD is a special RM algorithm*]. Then, the convergence naturally follows.
+\
+\
+~~~~*The aim of SGD* is to minimize
+$
+  J(w) = EE[ f(w, X) ]
+$
+~~~~This problem can be converted to a *_root-finding_* problem:
+$
+  nabla_w J(w) = EE[ nabla_w f(w, X) ] = 0
+$
+Let
+$
+  g(w) = nabla_w J(w) = EE[ nabla_w f(w, X) ].
+$
+~~~~Then, the aim of SGD is to #underline[find the root of $g(w) = 0$.]
+\
+\
+~~~~What we can measure is
+$
+  tilde(g)(w, eta) & = nabla_w f(w, x) \
+                   & = underbrace(EE[ nabla_w f(w, X) ], g(w)) + underbrace(nabla_w f(w, x) - EE[ nabla_w f(w, X) ], eta)
+$
+
+~~~~Then, the RM algorithm for solving $g(w) = 0$ is
+$
+  w_(k+1) = w_k - a_k tilde(g)(w_k, eta_k) = w_k - a_k nabla_w f(w_k, x_k).
+$
+\
+~~~~It is exactly the SGD algorithm.\
+~~~~Therefore, SGD is a special RM algorithm.
+
+\
+\
+\
+\
+\
+\
+- - *SGD convergence theorem*
+#figure(
+  image("lec6_SGD_convergence_theorem.png", width: 100%),
+)
+\
+
+\
+\
+\
+\
+\
+
+- *SGD convergence pattern*
+\
+
+
+*Question*: \
+~~~~Since the stochastic gradient is random and hence the approximation is inaccurate, *_whether the convergence of SGD is slow or random?_*
+\
+\
+- - To answer this question, we consider the *relative error* between the _stochastic_ and _batch gradients_:
+$
+  delta_k := (|nabla_w f(w_k, x_k) - EE[ nabla_w f(w_k, X) ]|) / (|EE[ nabla_w f(w_k, X) ]|).
+$
+
+~~~~Since $EE[ nabla_w f(w^*, X) ] = 0$ ($w^*$ is the optimal solution), we further have
+$
+  delta_k & = (|nabla_w f(w_k, x_k) - EE[ nabla_w f(w_k, X) ]|) / (|EE[ nabla_w f(w_k, X) ] - EE[ nabla_w f(w^*, X) ]|) \
+          & = (|nabla_w f(w_k, x_k) - EE[ nabla_w f(w_k, X) ]|) / (|EE[ nabla^2_w f(tilde(w)_k, X) ] (w_k - w^*)|),
+$
+where the last equality is due to the _Lagrange's mean value theorem_ and $tilde(w)_k in [w_k, w^*]$
+\
+\
+\
+
+~~~~Suppose $f$ is strictly convex such that
+$
+  nabla^2_w f >= c > 0
+$
+for all $w, X$, where $c$ is a positive bound.
+
+~~~~Then, the denominator of $delta_k$ becomes
+$
+  |EE[ nabla^2_w f(tilde(w)_k, X) ] (w_k - w^*)| & = |EE[ nabla^2_w f(tilde(w)_k, X) ]| |w_k - w^*| \
+                                                 & >= c |w_k - w^*|.
+$
+
+~~~~Substituting the above inequality to $delta_k$ gives
+$
+  delta_k <= (|nabla_w f(w_k, x_k) - EE[ nabla_w f(w_k, X) ]|) / (c |w_k - w^*|).
+$\
+
+Note that
+#align(center)[
+  #rect[
+    $
+      delta_k <= (| overbrace(nabla_w f(w_k, x_k), "stochastic gradient") - overbrace(EE[ nabla_w f(w_k, X) ], "true gradient") |) / ( underbrace(c|w_k - w^*|, "distance to the optimal solution")).
+    $
+  ]]
+
+~~~~The above equation suggests an interesting convergence pattern of SGD.
+
+~~~~① The relative error $delta_k$ is inversely proportional to $|w_k - w^*|$.\
+~~~~② *When $|w_k - w^*|$ is large, $delta_k$ is small and SGD behaves like GD.*\
+~~~~③ *When $w_k$ is close to $w^*$, the relative error may be large and the convergence exhibits more randomness in the neighborhood of $w^*$*.
+
+\
+\
+\
+- - *Illustrative example*
+\
+~~~~*Setup*: $X in RR^2$ represents a random position in the plane. Its distribution is _uniform_ in the square area centered at the origin with the side length as 20. The true mean is $EE[X] = 0$. The mean estimation is
+based on 100 iid samples ${x_i}^100_(i=1)$.
+
+
+#figure(
+  image("lec6_SGD_convergence_pattern_example.png", width: 80%),
+)
+
+~~~~Although the initial guess of the mean is far away from the true value, the SGD estimate can approach the neighborhood of the true value fast.\
+~~~~When the estimate is close to the true value, it exhibits certain randomness but still approaches the true value gradually.\
+\
+\
+\
+\
+
+- - *A deterministic formulation*\
+\
+~~~~The formulation of SGD we introduced above involves random variables($X$) and expectation. \
+~~~~One may often encounter a deterministic formulation of SGD without involving any random variables.
+\
+\
+\
+
+~~~~Consider the optimization problem:
+$
+  min_w J(w) = 1/n sum_(i=1)^n f(w, x_i),
+$
+where\
+~~~~① $f(w, x_i)$ is a parameterized function.\
+~~~~② $w$ is the parameter to be optimized.\
+~~~~③ a set of real numbers ${x_i}_(i=1)^n$, where $x_i$ #underline[does not have to be a sample of any random variable.]
+
+\
+
+~~~~The GD for solving this problem is
+$
+  w_(k+1) & = w_k - alpha_k nabla_w J(w_k) \
+          & = w_k - alpha_k 1/n sum_(i=1)^n nabla_w f(w_k, x_i).
+$
+
+~~~~Suppose the set is large and we can only fetch _a single number every time_. In this case, we can use the following iterative algorithm (we only fetch *$x_k$* out of the set and use it) :
+$
+  w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k).
+$
+\
+
+
+
+#pagebreak()
+
+
+
+
+Questions:\
+~~~~① Is this algorithm SGD? #underline[It does not involve any random variables or expected values.]\
+~~~~② How should we use the finite set of numbers ${x_i}_(i=1)^n$? Should we sort these numbers in a certain order and then use them one by one? Or should we randomly sample a number from the set?
+
+\
+
+~~~~A quick answer to the above questions is that we can *_introduce a random variable manually_* and convert the deterministic formulation to the stochastic formulation of SGD.
+
+~~~~In particular, suppose $X$ is _a random variable defined on the set ${x_i}_(i=1)^n$_. \
+~~~~Suppose its probability distribution is _*uniform*_ such that
+$
+  p(X = x_i) = 1/n.
+$
+~~~~Then, the deterministic optimization problem becomes a stochastic one:
+$
+  min_w J(w) = 1/n sum_(i=1)^n f(w, x_i) = EE[ f(w, X) ].
+$
+
+~~~~The last equality in the above equation is _strict_ instead of approximate. Therefore, the algorithm is SGD.\
+~~~~#underline[The estimate converges if *_$x_k$ is uniformly and independently sampled from ${x_i}_{i=1}^n$_*]. $x_k$ may repeatedly take the same number in ${x_i}_{i=1}^n$ since it is sampled randomly.\
+
+#underline[(Note that the uniform sampling ensures $EE(eta) = 0$, satisfying the convergence condition of RM)]
+
+\
+\
+\
+\
+\
+\
+\
+\
+- *BGD, MBGD(minibatch), SGD*
+\
+- - Suppose we would like to minimize $J(w) = EE[ f(w, X) ]$, given a set of random samples ${x_i}_(i=1)^n$ of $X$. The BGD, SGD, MBGD algorithms solving this problem are, respectively,
+
+$
+  w_(k+1) = w_k - alpha_k 1/n sum_(i=1)^n nabla_w f(w_k, x_i), (B G D)
+$
+$
+  w_(k+1) = w_k - alpha_k 1/m sum_(j in I_k) nabla_w f(w_k, x_j), (M B G D)
+$
+$
+  w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k). (S G D)
+$
+\
+~~~~① In the BGD algorithm, all the samples are used in every iteration. When $n$ is large, $(1/n) sum_(i=1)^n nabla_w f(w_k, x_i)$ is close to the true gradient $EE[ nabla_w f(w_k, X) ]$.
+
+~~~~② In the MBGD algorithm, *$I_k$ is a subset of ${1, dots, n}$ with the size as $|I_k| = m$*. The set $I_k$ is obtained by $m$ times iid samplings.
+
+~~~~③ In the SGD algorithm, $x_k$ is randomly sampled from ${x_i}_{i=1}^n$ at time $k$.
+
+\
+\
+- - *Compare MBGD with BGD and SGD*
+
+~~~~① Compared to SGD, MBGD has _less randomness_ because it uses more samples instead of just one as in SGD.
+
+~~~~② Compared to BGD, MBGD does not require to use all the samples in every iteration, making it _more flexible and efficient_.
+\
+\
+(i) If $m = 1$, MBGD becomes SGD.\
+(ii) If $m = n$, MBGD *does not become BGD strictly speaking* because *MBGD uses randomly fetched $n$ samples* whereas *BGD uses all $n$ numbers*. In particular, MBGD may use a value in ${x_i}_(i=1)^n$ multiple times whereas BGD uses each number once.
+
+
+
+
+- - *Illustrative examples*
+
+~~~~Given some numbers ${x_i}_(i=1)^n$, our _*aim is to*_\
+_*calculate the mean*_ $overline(x) = sum_(i=1)^n (x_i \/ n)$. This problem can be equivalently stated as the following optimization problem (to minimize the variance!):
+
+$
+  min_w J(w) = 1/(2n) sum_(i=1)^n || w - x_i ||^2
+$
+
+~~~~The three algorithms for solving this problem are, respectively,
+
+$
+  w_(k+1) & = w_k - alpha_k 1/n sum_(i=1)^n (w_k - x_i) \
+          & = w_k - alpha_k (w_k - overline(x)), (B G D)
+$
+$
+  w_(k+1) & = w_k - alpha_k 1/m sum_(j in I_k) (w_k - x_j) \
+          & = w_k - alpha_k ( w_k - overline(x)_k^((m)) ), (M B G D)
+$
+$
+  w_(k+1) = w_k - alpha_k (w_k - x_k), (S G D)
+$
+\
+where $overline(x)_k^((m)) = sum_(j in I_k) x_j / m$.
+
+\
+~~~~Furthermore, if $alpha_k = 1/k$, the above equation can be solved as
+
+$
+  w_(k+1) = 1/k sum_(j=1)^k overline(x) = overline(x), (B G D)
+$
+$
+  w_(k+1) = 1/k sum_(j=1)^k overline(x)_j^((m)), (M B G D)
+$
+$
+  w_(k+1) = 1/k sum_(j=1)^k x_j. (S G D)
+$
+\
+~~~~① The estimate of BGD at each step is exactly the optimal solution $w^* = overline(x)$.\
+~~~~② The estimate of MBGD approaches the mean faster than SGD because $overline(x)_k^((m))$ is already an average.
+
+
+
+#figure(
+  image("lec6_minibatch_GD_example.png", width: 100%),
+)
+
+
+\
+\
+\
+\
+\
+#rect[
+  - *Summary: Connections between mean estimation, RM, and SGD*
+
+  - - Mean estimation: compute $EE[X]$ *using ${x_k}$*
+  $
+    w_(k+1) = w_k - 1/k (w_k - x_k).
+  $
+
+  - - RM algorithm: solve $g(w) = 0$ *using ${tilde(g)(w_k, eta_k)}$*(noisy observation)
+  $
+    w_(k+1) = w_k - a_k tilde(g)(w_k, eta_k).
+  $
+
+  - - SGD algorithm: minimize $J(w) = EE[ f(w, X) ]$ *using ${nabla_w f(w_k, x_k)}$*
+  $
+    w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k).
+  $
+
+  These results are useful:\
+  ~~~~① We will see in the next chapter that the _temporal-difference_ learning algorithms can be viewed as stochastic approximation algorithms and hence have similar expressions.\
+  ~~~~② They are important optimization techniques that can be applied to many other fields.
+]
+
+
+
+
+
+
+
+
+#pagebreak()
+
+
+
+
+
+
+
+
+
+
+#place(top, scope: "parent", float: true)[
+  #align(center + horizon)[  // horizon 让它垂直居中页顶区域，更美观
+    #text(font: "Georgia", weight: "bold", size: 24pt)[§ Lec VII]  //
+    #v(0em)
+    #line(length: 100%, stroke: 1pt)  // 可选：加一条装饰线
+  ]
+]
+
+== Temporal-Difference Learning
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
