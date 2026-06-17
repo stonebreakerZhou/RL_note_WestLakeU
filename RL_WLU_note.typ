@@ -2887,7 +2887,319 @@ $
   ]
 ]
 
-== Temporal-Difference Learning
+== Temporal-Difference (TD) Learning
+\
+Monte Carlo (MC) learning is the first model-free method. TD learning
+is the second model-free method. TD has some advantages compared
+to MC.
+\
+\
+\
+=== 1. Motivating examples
+\
+- *First*, consider the simple mean estimation problem: calculate
+$
+  w = EE[X],
+$
+based on some iid samples ${x}$ of $X$.
+
+~~~~By writing $g(w) = w - EE[X]$, we can reformulate the problem to a root-finding problem : $g(w) = 0$\
+
+~~~~Since we can only obtain samples ${x}$ of $X$, the noisy observation is
+$
+  tilde(g)(w, eta) = w - x & = (w - EE[X]) + (EE[X] - x) \
+                           & ≐ g(w) + eta.
+$
+~~~~Then, according to the last lecture, we know the RM algorithm for solving $g(w) = 0$ is
+$
+  w_(k+1) = w_k - alpha_k tilde(g)(w_k, eta_k) = w_k - alpha_k (w_k - x_k).
+$
+\
+\
+- *Second*, consider a little more complex problem. That is to estimate the mean of a function $v(X)$,
+$
+  w = EE[ v(X) ],
+$
+based on some iid random samples ${x}$ of $X$.
+
+~~~~To solve this problem, we define
+$
+  g(w) = w - EE[ v(X) ],
+$
+$
+  tilde(g)(w, eta) & = w - v(x) \
+                   & = (w - EE[ v(X) ]) + (EE[ v(X) ] - v(x)) \
+                   & ≐ g(w) + eta.
+$
+~~~~Then, the problem becomes a root-finding problem: $g(w) = 0$. The corresponding RM algorithm is
+$
+  w_(k+1) = w_k - alpha_k tilde(g)(w_k, eta_k) = w_k - alpha_k [ w_k - v(x_k) ].
+$
+\
+
+- *Third*, consider an even more complex problem: calculate
+$
+  w = EE[ R + gamma v(X) ],
+$
+where $R, X$ are random variables, $gamma$ is a constant, and $v(·)$ is a function.
+
+~~~~Suppose we can obtain samples ${x}$ and ${r}$ of $X$ and $R$. We define
+$
+  g(w) = w - EE[ R + gamma v(X) ],
+$
+$
+  tilde(g)(w, eta) & = w - [ r + gamma v(x) ] \
+                   & = (w - EE[ R + gamma v(X) ]) + (EE[ R + gamma v(X) ] \
+                   & - [ r + gamma v(x) ]) \
+                   & ≐ g(w) + eta.
+$
+~~~~Then, the problem becomes a root-finding problem: $g(w) = 0$. The corresponding RM algorithm is
+$
+  w_(k+1) & = w_k - alpha_k tilde(g)(w_k, eta_k) \
+          & = w_k - alpha_k [ w_k - (r_k + gamma v(x_k)) ].
+$
+
+\
+\
+
+Quick summary:\
+~~~~The above three examples can all be solved by the _*RM*_ algorithm.\
+~~~~We will see that the TD algorithms have similar expressions.\
+
+
+
+#pagebreak()
+
+
+
+=== 2. TD learning of state values
+\
+Note that\
+① TD learning often refers to _a broad class of RL algorithms_.\
+② TD learning also refers to _a specific algorithm for estimating state values as introduced below_.
+\
+\
+\
+- *Algorithm description*
+
+- - The data/experience required by the algorithm:\
+$(s_0, r_1, s_1, dots, s_t, r_(t+1), s_(t+1), dots)$ or ${(s_t, r_(t+1), s_(t+1))}_t$ generated following the given policy $π$ (a trajecotry).
+\
+\
+- - *The TD learning algorithm is*
+*$ v_(t+1)(s_t) = v_t (s_t) - alpha_t (s_t) [ v_t (s_t) - [ r_(t+1) + gamma v_t (s_(t+1)) ] ], (1) $
+$ v_(t+1)(s) = v_t (s), forall s != s_t, (2) $*
+where $t = 0,1,2,dots$. Here, $s_t$ is the state at time $t$; $v_t (s_t)$ is the estimated state value of $v_π (s_t)$; $alpha_t (s_t)$ is the learning rate of $s_t$ at time $t$.
+\
+
+~~~~At time $t$, only the value of the visited state $s_t$ is updated whereas the values of the unvisited states $s != s_t$ remain unchanged.\
+~~~~The update in (2) will be omitted when the context is clear.
+\
+\
+\
+\
+
+- *Algorithm properties*
+
+- - The TD algorithm can be annotated as
+
+
+
+*$ underbrace(v_(t+1)(s_t), "new estimate") = underbrace(v_t (s_t), "current estimate") - alpha_t (s_t) [ underbrace(v_t (s_t) - overbrace(( r_(t+1) + gamma v_t (s_(t+1)) ), "TD target" overline(v)_t), "TD error" delta_t) ] (3) $*
+
+Here,
+$
+  overline(v)_t ≐ r_(t+1) + gamma v_t(s_(t+1))
+$
+is called the *TD target*, and
+$
+  delta_t ≐ v_t(s_t) - [ r_(t+1) + gamma v_t(s_(t+1)) ] = v_t(s_t) - overline(v)_t
+$
+is called the *TD error*.
+
+~~~~It is clear that the new estimate $v_(t+1)(s_t)$ is a combination of the current estimate $v_t(s_t)$ and the TD error.
+\
+\
+- - *First, why is $overline(v)_t$ called the TD target?*
+~~~~That is because *the algorithm drives $v(s_t)$ towards $overline(v)_t$*.
+
+To see that,
+$
+  v_(t+1)(s_t) = v_t (s_t) - alpha_t(s_t) [ v_t (s_t) - overline(v)_t ]
+$
+$
+  => v_(t+1)(s_t) - overline(v)_t = v_t (s_t) - overline(v)_t - alpha_t (s_t) [ v_t (s_t) - overline(v)_t ],
+$
+$
+  => v_(t+1)(s_t) - overline(v)_t = [1 - alpha_t (s_t)] [ v_t (s_t) - overline(v)_t ].
+$
+$
+  => | v_(t+1)(s_t) - overline(v)_t | = |1 - alpha_t (s_t)| | v_t (s_t) - overline(v)_t |.
+$
+\
+~~~~Since $alpha_t (s_t)$ is a small positive number, we have
+$
+  0 < 1 - alpha_t (s_t) < 1.
+$
+~~~~Therefore,
+$
+  | v_(t+1)(s_t) - overline(v)_t | <= | v_t(s_t) - overline(v)_t |,
+$
+which means $v(s_t)$ is driven towards $overline(v)_t$.
+
+\
+- - *Second, what is the interpretation of the TD error?*
+$
+  delta_t = v_t (s_t) - [ r_(t+1) + gamma v_t (s_(t+1)) ]
+$
+It's a difference between two consequent time steps and reflects the deficiency between $v_t$and$v_π$
+
+\
+\
+\
+
+~~~~To see that, denote
+$
+  delta_(π,t) ≐v_π(s_t) - [ r_(t+1) + gamma v_π(s_(t+1)) ].
+$
+Note that
+$
+  EE[ delta_(π,t)|S_t = s_t ] & = v_π (s_t) - EE[ R_(t+1) + gamma v_π (S_(t+1))|S_t = s_t ] \
+                              & = 0.
+$
+(notice: the latter term is exactly the state value at $s_t$, that's why it ends up in 0)\
+
+~~~~① *If $v_t = v_π$, then $delta_t$ should be zero (in the expectation sense)*.\
+~~~~② Hence, if $delta_t$ is not zero, then $v_t$ is not equal to $v_π$.
+\
+
+~~~~The TD error can be interpreted as _*innovation*_, which means new information obtained from the experience $(s_t, r_(t+1), s_(t+1))$.
+
+\
+- - *Other properties*:
+
+~~~~① The TD algorithm in (3) *only estimates the state value of a given policy*.\
+~~~~② It does not estimate the action values.\
+~~~~③ It does not search for optimal policies.\
+\
+~~~~Later, we will see how to estimate action values and then search for optimal policies.\
+~~~~Nonetheless, the TD algorithm in (3) is fundamental for understanding the core idea.
+
+\
+\
+\
+
+- *The idea of TD algorithm*
+
+#rect[
+  Q: What does this TD algorithm do mathematically?\
+  A: *It solves the Bellman equation of a given policy $π$ without model.*]
+
+~~~~We'll explore on the proof below.\
+\
+
+- - *First, a new expression of the Bellman equation*.
+
+~~~~The definition of state value of $π$ is
+$
+  v_π (s) = EE[ R + gamma G | S = s ], #h(0.5em)s in cal(S), #h(0.5em) (4)
+$
+where $G$ is _discounted return_ (immediate reward + expected discouted return).
+
+~~~~Since
+$
+  EE[ G | S = s ] & = sum_a π(a|s) sum_(s') p(s'|s,a) v_π (s') \
+                  & = EE[ v_π (S') | S = s ],
+$
+where $S'$ is the next state, we can rewrite (4) as
+*$ v_π (s) = EE[ R + gamma v_π (S') | S = s ], #h(0.5em) s in cal(S). #h(0.5em) (5) $*
+\
+~~~~Equation (5) is another expression of the Bellman equation. It is sometimes called the _*Bellman expectation equation*_, an important tool to design and analyze TD algorithms.
+
+\
+
+- - *Second, solve the Bellman equation in (5) using the #underline[RM algorithm].*
+
+~~~~In particular, by defining
+$
+  g(v(s)) = v(s) - EE[ R + gamma v_π (S') | s ],
+$
+we can rewrite (5) as a root-finding problem :
+$
+  g(v(s)) = 0.
+$
+
+~~~~Since we can only obtain the samples $r$ and $s'$ of $R$ and $S'$, the noisy observation we have is
+$
+  tilde(g)(v(s)) & = v(s) - [ r + gamma v_π (s') ] \
+                 & = underbrace(v(s) - EE[ R + gamma v_π (S')|s ], g(v(s)))
+                   + underbrace(EE[ R + gamma v_π (S')|s ] - [ r + gamma v_π (s') ], eta).
+$
+
+~~~~Therefore, the RM algorithm for solving $g(v(s)) = 0$ is
+$
+  v_(k+1)(s) & = v_k (s) - alpha_k tilde(g)(v_k (s)) \
+             & = v_k (s) - alpha_k ( v_k (s) - [ r_k + gamma v_π (s'_k) ] ), k = 1,2,3,dots (6)
+$
+where $v_k (s)$ is the estimate of $v_π (s)$ at the $k$th step; $r_k, s'_k$ are the samples of $R, S'$ obtained at the $k$th step.
+\
+
+~~~~The RM algorithm in (6) has two assumptions that deserve special attention.\
+~~~~① We must have the experience set ${(s, r, s')}$ for $k = 1,2,3,dots$.\
+~~~~② We assume that $v_π (s')$ is already known for any $s'$.
+
+
+
+~~~~To _remove_ the two assumptions in the RM algorithm, we can modify it.
+
+~~~~① One modification is that ${(s, r, s')}$ is changed to *${(s_t, r_(t+1), s_(t+1))}$* so that the algorithm can utilize the sequential samples in an episode.\
+~~~~② Another modification is that $v_π (s')$ is replaced by an estimate of it (*$v_k (s_k^')$*) because we don't know it in advance.
+
+\
+\
+
+- - *Algoritm convergence*
+#figure(
+  image("lec7_TD_convergence.png", width: 100%),
+)
+
+Remarks\
+
+~~~~① This theorem says the state value can be found by the TD algorithm *for a given policy $π$*.\
+
+~~~~② $sum_t alpha_t (s) = infinity$ and $sum_t alpha_t^2(s) < infinity$ *must be valid for all $s in cal(S)$*. At time step $t$, if $s = s_t$ which means that $s$ is visited at time $t$, then $alpha_t (s) > 0$; otherwise, $alpha_t (s) = 0$ for all the other $s != s_t$. That requires every state must be visited an infinite (or sufficiently many) number of times.\
+
+~~~~③ *The learning rate $alpha$ is often selected as a small constant*. In this case, the condition that $sum_t alpha_t^2(s) < infinity$ is invalid anymore. When $alpha$ is constant, it can still be shown that the algorithm converges in the sense of expectation sense.
+
+\
+\
+
+- - *Comparison between TD learning and MC learning*
+
+~~~~While TD learning and MC learning are both model-free, what are the advantages and disadvantages of TD learning compared to MC learning?
+
+#figure(
+  table(
+    columns: (1fr, 1fr),
+    align: (left, left),
+    table.header([*TD/Sarsa learning*], [*MC learning*]),
+    [#v(0.5em)TD learning is *online*. It can update the state/action values immediately after receiving a reward.],
+    [#v(0.5em)MC learning is *offline*. It has to wait until an episode has been completely collected.],
+
+    [#v(0.5em)Since TD learning is online, it can handle *both episodic and continuing tasks*.],
+    [#v(0.5em)Since MC learning is offline, it can *only handle episodic tasks* that have terminal states.],
+
+    [#v(0.5em)*Bootstrapping*: TD bootstraps because the update of a value relies on the previous estimate of this value. Hence, it requires initial guesses],
+    [#v(0.5em)*Non-bootstrapping*: MC is not
+      bootstrapping, because it can directly
+      estimate state/action values without
+      any initial guess],
+
+    [#v(0.5em)*Low estimation variance*: TD is lower than MC because it has
+      _fewer random variables_. For instance, Sarsa requires $R_(t+1),S_(t+1),A_(t+1)$. However the mean is biased because bootstrapping depends on the initial guesses],
+    [#v(0.5em)*High estimation variance*: To estimate $q_pi (s_t, a_t)$, we need samples of $R_(t+1) + gamma R_(t+2) + gamma^2 R_(t+3) + ...$. Suppose the length of each episode is L. There are $|cal(A)|^L$ possible episodes. Without initial guesses, the expectation is an unbiased estimation.],
+  ),
+)
 
 
 
@@ -2901,18 +3213,6 @@ $
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#pagebreak()
 
 
