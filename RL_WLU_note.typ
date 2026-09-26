@@ -60,20 +60,20 @@
 \
 === 1. Grid-World Example
 \
-*_State_*: The status of the agent with respect to the environment.\
+- *_State_*: The status of the agent with respect to the environment.\
 ~~~~In the grid world, the state is the location of the agent: $s_1, s_2 ...s_9$.\
 
 #figure(
-  image("lec1_state.png", width: 30%),
+  image("images/lec1_state.png", width: 50%),
 )
 *_State space_*: $S = {s_i}_(i=1)^9$
 \
 \
 \
-*_Action_*: For each state, there are several possible actions: $a_1,...a_5$
+- *_Action_*: For each state, there are several possible actions: $a_1,...a_5$
 
 #figure(
-  image("lec1_action.png", width: 30%),
+  image("images/lec1_action.png", width: 50%),
 )
 *_Action space of a state_*: $cal(A)(s_i) = {a_i}_(i=1)^5$
 \
@@ -84,8 +84,9 @@ $ s_1 arrow^(a_2) s_2 $
 
 ~~~~We can use *_tabular representation_* to describe the state transition.(only deterministic cases)
 #figure(
-  image("lec1_tabular_representation.png", width: 70%),
+  image("images/lec1_tabular_representation.png", width: 100%),
 )
+\
 
 *_Forbidden area_*: \
 ~~~~case 1: it's accessible but with penalty $✓$\
@@ -99,60 +100,67 @@ $
 ~~~~Here it is a deterministic case, but state transition can be stochastic.\
 \
 \
+\
 
-*_Policy_* tells the agent what actions to take at a state.\
+- *_Policy_* tells the agent what actions to take at a state.\
 ~~~~We can use _conditional probability_ to describe a policy.(the probs of actions conditioned on each state)
 
 #grid(
   columns: (1fr, 1fr, 1fr),
-  figure(image("lec1_policy_arrows.png", width: 60%)),
-  figure(image("lec1_deterministic_policy_prob.png", width: 45%)),
-  figure(image("lec1_stochastic_policy_prob.png", width: 50%)),
+  figure(image("images/lec1_policy_arrows.png", width: 100%)),
+  figure(image("images/lec1_deterministic_policy_prob.png", width: 70%)),
+  figure(image("images/lec1_stochastic_policy_prob.png", width: 80%)),
 )
 
 ~~~~There are stochastic policies as well.\
 ~~~~And we can use _tabular representation_ of a policy.\
 #figure(
-  image("lec1_tabular_repre_policy.png", width: 70%),
+  image("images/lec1_tabular_repre_policy.png", width: 100%),
 )
+
 
 #rect[
   Q: How to implement a stochastic policy?\
   A: We can sample uniformly from $(0,1)$ and assign subintervals to actions based on their probabilities under the policy. The sampled value determines which action is taken.
 ]
 
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 
-
-
-#pagebreak()
-
-
-
-
-*Reward*: a real number we get after taking an action.\
+- *Reward*: a real number we get after taking an action.\
 ~~~~Usually: '$+$': encouragement~~~vs.~~ '$-$': punishment.\
 ~~~~In the grid-world example:
 $ r_("bound") = -1, r_("forbid") = -1, r_("target") = +1, r_("other")=0 $
 
-~~~~Reward can be interpreted as a _*human-machine interface*_, with whitch we can guide the agent to behave as what we want.\
+~~~~Reward can be interpreted as a _*human-machine interface*_, with which we can guide the agent to behave as what we want.\
 
 ~~~~Tabular representation of reward transition:\
 #figure(
-  image("lec1_tabular_repre_reward_trans.png", width: 70%),
+  image("images/lec1_tabular_repre_reward_trans.png", width: 100%),
 )
 
 ~~~~Mathematical representation of reward by conditional probability.(it can also be stochastic)\
 $ p(r=-1|s_1, a_1) = 1 "and" p(r!=-1|s_1, a_1) = 0 $
-\
-\
-\
+
+
+
+
+
+
 
 *Trajectory* is a state-action-reward chain.
 $ s_1 arrow_(r = 0)^(a_2) s_2 arrow_(r = 0)^(a_3) s_5 arrow_(r = 0)^(a_3) s_8 arrow_(r = 1)^(a_2) s_9 $
 
 #figure(
-  image("lec1_trajectory_map.png", width: 35%),
+  image("images/lec1_trajectory_map.png", width: 60%),
 )
 ~~~~The *_return_* of this trajectory is 0+0+0+1 = 1 (the sum of all the rewards collected along the trajectory)
 \
@@ -161,8 +169,12 @@ $ s_1 arrow_(r = 0)^(a_2) s_2 arrow_(r = 0)^(a_3) s_5 arrow_(r = 0)^(a_3) s_8 ar
 \
 \
 \
-\
-*Discounted return*:\
+
+
+
+
+
+- *Discounted return*:\
 ~~~~Since a trajectory may be infinite,
 $
   s_1 arrow_(r = 0)^(a_2) s_2 arrow_(r = 0)^(a_3) s_5 arrow_(r = 0)^(a_3) s_8 arrow_(r = 1)^(a_2) s_9 arrow_(r=1)^(a_5) s_9 arrow_(r=1)^(a_5) s_9......
@@ -178,11 +190,16 @@ $
 
 ~~~~If $gamma$ is close to 0, the value of the discounted return is dominated by the rewards obtained in the *_near_* future.\
 ~~~~If $gamma$ is close to 1, the value of the discounted return is dominated by the rewards obtained in the *_far_* future.\
-\
-\
-\
 
-*Episode*:\
+
+
+
+#pagebreak()
+
+
+
+
+- *Episode*:\
 ~~~~When interacting with the environment following a policy, the agent may stop at some *_terminal states_*. The resulting trajectory  is called an episode.(or a trial)\
 
 ~~~~An episode is usually a *_finite_* trajectory. Tasks with episodes are called *_episodic tasks_*.
@@ -194,6 +211,9 @@ $
 ~~~~In fact, we can treat episodic and continuing tasks in a unified mathematical way by #underline[converting episodic tasks to continuing tasks].\
 ~~~~Op.① Treat the target state as a special absorbing state.(never leave and no more reward)\
 ~~~~Op.② Treat the target state as normal state with a policy.(can still leave and gain r = +1 when entering the target state) $✓$
+
+
+\
 \
 \
 \
@@ -228,7 +248,7 @@ Now we can understand MDP better:\
 \
 The grid world could be abstracted as more general model, #underline[Markov process].\
 #figure(
-  image("lec1_grid_Markov_map.png", width: 65%),
+  image("images/lec1_grid_Markov_map.png", width: 100%),
 )
 
 Once a policy is given, the _Markov decision process_ becomes a _Markov process_.
@@ -238,7 +258,11 @@ Once a policy is given, the _Markov decision process_ becomes a _Markov process_
 
 
 
+
+
 #pagebreak()
+
+
 
 
 
@@ -259,11 +283,12 @@ Once a policy is given, the _Markov decision process_ becomes a _Markov process_
 
 === 1. Why is return important?
 \
-- Return could be used to evaluate policies.
+- *Return could be used to evaluate policies.*
 
 #figure(
-  image("lec2_3_policies'returns.png", width: 100%),
+  image("images/lec2_3_policies'returns.png", width: 100%),
 )
+
 Starting from $s_1$, the discounted returns are:
 
 ~~~~policy 1 (left figure)
@@ -293,14 +318,15 @@ As $"return"_1 > "return"_2 > "return"_3$, the first policy is the best.
 \
 \
 \
+\
 
-- How to calculate return?
+- *How to calculate return?*
 
   #figure(
-    image("lec2_calculate_return.png", width: 40%),
+    image("images/lec2_calculate_return.png", width: 50%),
   )
 
-  - Method 1: by definition
+  - *Method 1 : by definition*
   Let $v_i$ be the return value starting from $s_i$
   #align(center)[
     $ v_1 = r_1 + gamma r_2 + gamma^2 r_3 + dots.c $
@@ -309,7 +335,7 @@ As $"return"_1 > "return"_2 > "return"_3$, the first policy is the best.
     $ v_4 = r_4 + gamma r_1 + gamma^2 r_2 + dots.c $
   ]
   \
-  - Method 2: *_Bootstrapping_* !
+  - *Method 2 :* *_Bootstrapping_* !
   The returns rely on each other.
   #align(center)[
     $ v_1 = r_1 + gamma v_2 $
@@ -344,9 +370,18 @@ As $"return"_1 > "return"_2 > "return"_3$, the first policy is the best.
 \
 \
 \
+\
+\
+\
+\
+\
+\
+\
+
+
 === 2. State Value
 \
-- Some Notations
+- *Some Notations*
 $ S_t arrow^(A_t) R_(t+1), S_(t+1) $
 
 
@@ -355,9 +390,9 @@ $ S_t arrow^(A_t) R_(t+1), S_(t+1) $
 ~~~~$R_(t+1)$: the reward obtained after taking $A_t$\
 ~~~~$S_(t+1)$: the state transited to after taking $A_t$\
 
-Note that $S_t$, $A_t$, $R_(t+1)$ are all _random variables_.(we can operate on them)\
+~~~~Note that $S_t$, $A_t$, $R_(t+1)$ are all _random variables_.(we can operate on them)\
 
-This single-step process is governed by the following probability distributions:
+~~~~This single-step process is governed by the following probability distributions:
 
 ~~~~$S_t arrow.r A_t$ is governed by $pi(A_t = a | S_t = s)$(policy)\
 
@@ -369,7 +404,7 @@ This single-step process is governed by the following probability distributions:
 \
 
 
-Then, consider the following multi-step trajectory:
+~~~~Then, consider the following multi-step trajectory:
 
 #align(center)[$
   S_t arrow^(A_t)
@@ -389,7 +424,11 @@ The discounted return is
 
 \
 \
-- The expectation of $G_t$ is defined as the *state value*:
+\
+\
+
+
+- *The expectation of $G_t$ is defined as the state value*:
 
 #align(center)[
   #rect[*$ v_pi(s) = E[ G_t | S_t = s ] $*]
@@ -410,15 +449,20 @@ The discounted return is
   — is deterministic, then state value is the same as return.
 ]
 
-\
-\
-\
-\
-\
+
+
+
+
+#pagebreak()
+
+
+
+
+
 === 3. Derivation of Bellman Equation
 \
 
-Consider a random trajectory:
+~~~~Consider a random trajectory:
 
 #align(center)[$
   S_t arrow^(A_t)
@@ -429,7 +473,7 @@ Consider a random trajectory:
   R_(t+3), dots
 $]
 
-The return $G_t$ can be written as
+~~~~The return $G_t$ can be written as
 
 #align(center)[$
   G_t & = R_{t+1} + gamma R_{t+2} + gamma^2 R_{t+3} + dots.c, \
@@ -437,7 +481,7 @@ The return $G_t$ can be written as
       & = R_{t+1} + gamma G_{t+1},
 $]
 
-Then, it follows from the definition of the state value that
+~~~~Then, it follows from the definition of the state value that
 
 #align(center)[$
   v_pi(s) & = EE[G_t | S_t = s] \
@@ -445,7 +489,7 @@ Then, it follows from the definition of the state value that
           & = EE[R_{t+1} | S_t = s] + gamma EE[G_{t+1} | S_t = s]
 $]
 
-Next, calculate the two terms, respectively.
+~~~~Next, calculate the two terms, respectively.
 \
 \
 \
@@ -457,7 +501,7 @@ Next, calculate the two terms, respectively.
                         & = sum_a pi(a|s) sum_r p(r|s,a) r
 $]
 
-Notice: This is the mean of *_immediate rewards_*.(the reward at $s$)
+Notice: This is the mean of *_immediate rewards_*.(the reward at state $s$)
 
 \
 
@@ -469,17 +513,21 @@ Notice: This is the mean of *_immediate rewards_*.(the reward at $s$)
                         & = sum_s' v_pi(s') sum_a p(s' | s,a) pi(a|s)
 $]
 
-Notice:\
+\
+\
+~~~~Note that:\
 
-Due to the _memoryless_ Markov property:
+~~~~This is due to the _memoryless_ Markov property:
 $ EE[G_{t+1} | S_t = s, S_{t+1} = s'] = EE[G_{t+1} | S_{t+1} = s'] $
 
-And the second term means the mean of *_future rewards_*.
+~~~~And the second term means the mean of *_future rewards_*.
+
 \
 \
 \
 \
-Therefore, we have the *Bellman Equation*:
+
+~~~~Therefore, we have the *Bellman Equation*:
 
 #align(center)[$
   v_pi(s) & = EE[R_{t+1}|S_t = s] + gamma EE[G_{t+1}|S_t = s], \
@@ -490,7 +538,8 @@ $]
 
 
 #rect[
-  - It characterizes the relationship among the _state-value functions of different states_. ($v_pi (s)$ and $v_pi (s')$)
+  - It characterizes the relationship among the _state value functions of different states_ :\
+  ~~~~($v_pi (s)$ and $v_pi (s')$)
 
   - A set of equations: _every state_ has an equation like this !!!
 ]
@@ -501,10 +550,14 @@ $]
 - Now we can calculate all state values using Bootstrapping !
 
   #figure(
-    image("lec2_Bellman_Equation_illustrate.png", width: 30%),
+    image("images/lec2_Bellman_Equation_illustrate.png", width: 50%),
   )
 
-  - With the Bellman Equation, we get:
+\
+
+
+
+- - With the Bellman Equation, we get:
   #align(center)[$
     v_pi (s_1) & = 0 + gamma v_pi (s_3), \
     v_pi (s_2) & = 1 + gamma v_pi (s_4), \
@@ -512,7 +565,7 @@ $]
     v_pi (s_4) & = 1 + gamma v_pi (s_4).
   $]
 
-  - The equation can be solved as:
+- - The equation can be solved as:
   #align(center)[$
     v_pi (s_4) & = frac(1, 1 - gamma), \
     v_pi (s_3) & = frac(1, 1 - gamma), \
@@ -520,12 +573,17 @@ $]
     v_pi (s_1) & = frac(gamma, 1 - gamma).
   $]
 
-
+\
+\
+\
+\
+\
+\
 
 === 4. Matrix-Vector form for Bellman Equation
 \
 
-- How to solve the Bellman equation?
+- *How to solve the Bellman equation ?*
 
 #align(center)[$
   v_pi (s) = sum_a pi(a|s) [ sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_pi (s') ]
@@ -543,15 +601,20 @@ Rewrite the Bellman equation as
     $ v_pi (s) = r_pi (s) + gamma sum_(s') p_pi (s' | s) v_pi (s') $
   ]
 ]
-where
 
-#align(center)[$r_pi (s) &≜ sum_a pi(a | s) sum_r p(r | s, a) r\
-  p_pi (s' | s) &≜ sum_a pi(a | s) p(s' | s, a)$
-]
 \
 
-Suppose the states could be indexed as $s_i$ ($i = 1, ..., n$).\
-For state $s_i$, the Bellman equation is
+where
+
+$
+       r_pi (s) & ≜ sum_a pi(a | s) sum_r p(r | s, a) r \
+  p_pi (s' | s) & ≜ sum_a pi(a | s) p(s' | s, a)
+$
+
+
+
+~~~~Suppose the states could be indexed as $s_i$ ($i = 1, ..., n$).\
+~~~~For state $s_i$, the Bellman equation is
 
 #align(center)[
   #rect[
@@ -559,7 +622,7 @@ For state $s_i$, the Bellman equation is
   ]
 ]
 
-Put all these equations for all the states together and rewrite to a
+~~~~Put all these equations for all the states together and rewrite to a
 matrix-vector form
 
 #align(center)[
@@ -569,15 +632,22 @@ matrix-vector form
 ]
 where
 
-$arrow(v_pi) = [v_pi (s_1), ..., v_pi (s_n)]^top in RR^n$
+$
+  arrow(v_pi) = [v_pi (s_1), ..., v_pi (s_n)]^top in RR^n
+$
 
-$arrow(r_pi) = [r_pi (s_1), ..., r_pi (s_n)]^top in RR^n$
+$
+  arrow(r_pi) = [r_pi (s_1), ..., r_pi (s_n)]^top in RR^n
+$
 
-$P_pi in RR^(n times n)$, where $[P_pi]_(i j) = p_pi (s_j | s_i)$, is the state transition matrix
+$
+  P_pi in RR^(n times n)
+$
+and $[P_pi]_(i j) = p_pi (s_j | s_i)$, is the state transition matrix
 
 
 #figure(
-  image("lec2_4_states_example.png", width: 100%),
+  image("images/lec2_4_states_example.png", width: 100%),
 )
 
 \
@@ -590,7 +660,7 @@ $P_pi in RR^(n times n)$, where $[P_pi]_(i j) = p_pi (s_j | s_i)$, is the state 
 
 
 
-  - The closed-form solution is:
+  - The *closed-form solution* is:
 
   #align(center)[
     #rect[
@@ -604,17 +674,18 @@ $P_pi in RR^(n times n)$, where $[P_pi]_(i j) = p_pi (s_j | s_i)$, is the state 
 
   - By iterative algorithms, we can avoid the matrix inverse.
 
-  An iterative solution is:
+  ~~~~An iterative solution is:
 
   #align(center)[$ arrow(v_(k+1)) = arrow(r_pi) + gamma P_pi arrow(v_k) $]
 
-  Initially, we can input a simple $v_0$, and do the iteration.\
+  ~~~~Initially, we can input a simple $v_0$, and do the iteration.\
 
-  This leads to a sequence $ {v_0, v_1, v_2, ...} $. We can show that
+  ~~~~This leads to a sequence $ {v_0, v_1, v_2, ...} $
+  ~~~~We can show that
 
   #align(center)[$ v_k -> v_pi = (I - gamma P_pi)^(-1) r_pi, quad k -> infinity $]
 
-  Iterating like this, $v_k$ converges to our previous closed-form solution (provable).
+  ~~~~Iterating like this, $v_k$ converges to our previous closed-form solution (provable).
 
 
 \
@@ -623,16 +694,16 @@ $P_pi in RR^(n times n)$, where $[P_pi]_(i j) = p_pi (s_j | s_i)$, is the state 
 === 5. Action Value
 \
 - *_State value_*: the average return the agent can get starting from a state.
-- *_Action value_*: the average return the agent can get starting from a state and taking an action.
+- *_Action value_*: the average return the agent can get _starting from a state and taking an action_.
 \
-Why do we care action value? \
-Because we want to know which action is
+~~~~Why do we care action value? \
+~~~~Because we want to know which action is
 better.
 \
 \
 \
 
-Definition:
+*Definition :*
 
 #align(center)[
   #rect[*$ q_pi (s,a) = EE[ G_t | S_t = s, A_t = a ] $*]
@@ -640,16 +711,16 @@ Definition:
 
 - $q_pi (s,a)$ is a function of the state-action pair $(s,a)$ and it also depends on $pi$(policy).
 
-\
 
-It follows from the properties of conditional expectation that
+
+~~~~It follows from the properties of conditional expectation that
 
 #align(center)[$
   underbrace(EE[ G_t | S_t = s ], v_pi (s))
   = sum_a underbrace(EE[ G_t | S_t = s, A_t = a ], q_pi (s,a)) pi(a|s)
 $]
 
-Hence,
+~~~~Hence,
 
 #align(center)[
   #rect[*$ v_pi (s) = sum_a pi(a|s) q_pi (s,a) #h(2em) (1) $*]
@@ -660,7 +731,7 @@ Hence,
 \
 \
 
-Recall that the state value is given by
+~~~~Recall that the state value is given by
 
 #align(center)[$
   v_pi (s) = sum_a pi(a|s)
@@ -670,18 +741,18 @@ Recall that the state value is given by
   )
 $]
 
-By comparing them, we have the action-value function as
+~~~~By comparing them, we have the action-value function as
 
 #align(center)[
   *$ q_pi (s,a) = sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_pi (s') #h(1em) (2) $*]
 
 \
 
-Actually, the two expressions (1)&(2) shows two sides of the same coin:
+~~~~Actually, the two expressions (1)&(2) shows two sides of the same coin:
 
-① (1)shows how to obtain state values from action values.(this is simple because we just do average on the actions)\
+① *(1) shows how to obtain state values from action values.*(this is simple because we just do average on the actions)\
 
-② (2)shows how to obtain action values from state values.(this one is harder)
+② *(2) shows how to obtain action values from state values.*(this one is harder)
 
 \
 \
@@ -689,7 +760,7 @@ Actually, the two expressions (1)&(2) shows two sides of the same coin:
 - An illustrative example
 
 #figure(
-  image("lec2_actionV_example.png", width: 40%),
+  image("images/lec2_actionV_example.png", width: 50%),
 )
 
 With
@@ -701,7 +772,7 @@ With
 we can get:
 $ q_pi (s_1, a_2) = -1 + gamma v_pi (s_2) $
 
-Notice: although the policy given asks to take action $a_2$ at $s_1$, we can get action values for _other actions_ !!!
+~~~~Notice : although the given policy asks to take action $a_2$ at $s_1$, we can get action values for _other actions_ !!!
 
 
 
@@ -732,7 +803,7 @@ $]
   - It answers: “What if we deviate *_now_*, then follow $pi$?”
   - This allows comparing actions to improve $pi$.
 
-  Hence, evaluating actions not taken by $pi$ is both valid and essential.
+  ~~~~Hence, evaluating actions not taken by $pi$ is both valid and essential.
 ]
 
 
@@ -765,7 +836,7 @@ $]
 === 1. Motivating Example
 \
 #figure(
-  image("lec3_motivate_example1.png", width: 40%),
+  image("images/lec3_motivate_example1.png", width: 50%),
 )
 
 ~~~~For the given policy $pi$, we can write out the Bellman equations:
@@ -808,7 +879,7 @@ $
   #h(1em)q_π (s_1,a_4) = 6.2, #h(1em)q_π (s_1,a_5) = 7.2.
 $
 
-~~~~What if we select the greatest action value?(this time $a_3$) Then, a new policy is obtained:
+~~~~What if we select the greatest action value?(this time is $a_3$) Then, a new policy is obtained:
 $
   π_"new" (a|s_1) = cases(
     1 #h(1em) a = a^*,
@@ -816,7 +887,7 @@ $
   )
 $
 ~~~~where $a^* = #text("argmax") _a q_π (s_1,a) = a_3$.\
-(the new policy will always choose the greatest action)
+(the new policy will always greedily choose the greatest action)
 
 \
 \
@@ -827,16 +898,20 @@ $
 \
 \
 \
-
+\
+\
 === 2. Optimal Policy
 \
-~~~~The state value could be used to evaluate if a policy is good or not: if $ v_(π_1)(s) >= v_(π_2)(s) #h(1em)"for all" s in cal(S) $
+~~~~*The state value could be used to evaluate if a policy is good or not*:
+$
+  "if" v_(π_1)(s) >= v_(π_2)(s) #h(1em)"for all" s in cal(S)
+$
 ~~~~then $π_1$ is "better" than $π_2$.
 
 #v(0.5em)
 - *Definition*
 #rect[
-  A policy $π^*$ is optimal if $v_(π^*)(s) >= v_π(s)$ for all $s$ and for any other policy $π$.
+  *  A policy $π^*$ is optimal if $v_(π^*)(s) >= v_π(s)$ for all $s$ and for any other policy $π$.*
 ]
 
 #v(0.5em)
@@ -846,7 +921,7 @@ $
 ~~~~③ Is the optimal policy stochastic or deterministic?\
 ~~~~④ How to obtain the optimal policy?\
 
-~~~~To answer these questions, we study the Bellman optimality equation.
+~~~~To answer these questions, we'll  study the Bellman optimality equation.
 
 \
 \
@@ -889,11 +964,13 @@ $
     max_π v_3
   )
 $
-\
+
 
 ~~~~Consider the matrix-vector form, we have to solve _two_ unknowns($v, pi$) from just _one_ equation.
 \
 \
+\
+
 - - *Fix $v'(s)$ first and solve $pi$*:
 
 $
@@ -902,7 +979,7 @@ $
 $
 
 #figure(
-  image("lec3_BOE_max_pi.png", width: 100%),
+  image("images/lec3_BOE_max_pi.png", width: 100%),
 )
 \
 \
@@ -916,7 +993,8 @@ $
   \
   a^* = "arg max"_a q(s,a)
 $]]
-~~~~where the optimality is achieved as shown above.(note: the $pi$ we get is a function of $v$)
+~~~~where the optimality is achieved as shown above. (note: the $pi$ we get is a function of $v$)
+\
 \
 \
 
@@ -940,11 +1018,12 @@ $
 
 ~~~~Next, how to solve the equation?
 
+\
+\
+\
+\
+\
 
-
-
-
-#pagebreak()
 
 
 
@@ -980,6 +1059,10 @@ Preliminaries:
 
 \
 \
+\
+\
+\
+
 ~~~~Let's go back to the former BOE:
 
 #align(center)[
@@ -990,7 +1073,71 @@ Preliminaries:
   ]
 ]
 
-~~~~$f(v)$ is a contraction mapping satisfying
+~~~~这里我们在证明中要使用的是无穷范数（选出一个取最大时的状态 $s$ ），即：
+$
+  ||v||_(infinity) = max_s ||v(s)||
+$
+
+~~~~我们把 $f()$ 之差逐状态写开：
+
+$
+  (f(v))(s) = max_a [ r(s,a) + gamma sum_(s') P(s' | s, a) v(s') ]
+$
+也就是说 $max_pi$ 实际上可以逐状态变成 $max_a$，选一个最优策略就等价于在每个状态处独立选最优的动作。
+
+\
+~~~~现在固定一个状态 $s$ ：\
+
+~~~~① 写出两个 $f(v)$ 的差
+$
+  abs((f(v_1))(s) - (f(v_2))(s)) = abs(max_a A_a - max_a B_a)
+$
+其中
+$
+  A_a = r(s,a) + gamma sum_(s') P(s' | s, a) v_1(s')
+$
+$
+  B_a = r(s,a) + gamma sum_(s') P(s' | s, a) v_2(s')
+$
+
+~~~~由于 :
+$
+  max_a |A_a - B_a| <= |max_a A_a - max_a B_a|
+$
+~~~~现在我们计算 $A_a - B_a$ :
+$
+  A_a - B_a = gamma sum_(s')P(s' | s, a) (v_1(s') - v_2 (s'))
+$
+~~~~故 :
+$
+  max_a |A_a - B_a| & = max_a |gamma sum_(s')P(s' | s, a) (v_1(s') - v_2 (s'))| \
+                    & <= max_a gamma sum_(s') P(s' | s,a) |v_1(s') - v_2(s')|
+$
+
+~~~~所以我们得到 :
+$
+  abs((f(v_1))(s) - (f(v_2))(s)) & <= max_a gamma sum_(s') P(s' | s,a) |v_1(s') - v_2(s')| \
+                                 & <= gamma sum_(s') P(s' | s,a) |v_1 - v_2|_(infinity)
+$
+~~~~注意上面这一步之前由于 $s'$ 依赖于 $a$ 所以我们保留 $max_a$，但是我们使用无穷范数后与 $a$ 无关了，于是抛去 $max_a$。\
+~~~~由于 :
+$
+  sum_s' ​P(s′∣s,a)=1
+$
+
+~~~~所以上式得 :
+$
+  abs((f(v_1))(s) - (f(v_2))(s)) <= gamma |v_1 - v_2|_(infinity)
+$
+~~~~这个不等式对于任意一个状态 $s$ 都是成立的。\
+~~~~而我们最终证明的不等式中左侧函数之差要使用无穷范数，于是我们还要对左侧取 $max$ (找取 max 时的最优 $s$)，进而也推出最后的不等式：
+$
+  |f(v_1) - f(v_2)|_(infinity) <= gamma |v_1 - v_2|_(infinity)
+$
+
+\
+\
+~~~~于是我们最终证明得到 ：$f(v)$ is a contraction mapping satisfying
 $
   ||f(v_1) - f(v_2)|| <= gamma ||v_1 - v_2||
 $
@@ -1002,14 +1149,18 @@ where $gamma$ is the discount rate!
 ~~~~For the BOE
 $ v = f(v) = max_π (r_π + gamma P_π v) $
 there always exists a solution $v^*$ and the solution is unique. The solution could be solved iteratively by
+
 $
   v_(k+1) = f(v_k) = max_π (r_π + gamma P_π v_k)
 $
-This sequence ${v_k}$ converges to $v^*$ exponentially fast given any _initial guess_ $v_0$. The convergence rate is determined by $gamma$.
+
+~~~~This sequence ${v_k}$ converges to $v^*$ exponentially fast given any _initial guess_ $v_0$. The convergence rate is determined by $gamma$.
 
 \
 \
-\
+
+
+
 - *Policy optimality*
 \
 ~~~~Suppose $v^*$ is the solution to the BOE. It satisfies
@@ -1108,6 +1259,7 @@ that there are three factors:\
 \
 \
 \
+
 #rect[
   *Theorem (Optimal Policy Invariance)* \
   ~~~~Consider a Markov decision process with $v^* in RR^|cal(S)|$ as the optimal state value. If every reward $r arrow a r + b$, ($a, b in RR$ and $a != 0$), then the corresponding optimal state value $v'$ is
@@ -1187,16 +1339,16 @@ Note that :\
 
 
 - *Elementwise form* :
-\
+
 - - *Step 1: policy update*
 
 ~~~~The elementwise form of
 $
   π_(k+1) = "arg max"_π (r_π + gamma P_π v_k)
 $
-is
+is （找其第 $s$ 分量，就是在状态 $s$ 处分析）
 $
-  π_(k+1)(s) = "arg max"_π sum_a π(a|s) underbrace(sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_k(s'), quad q_k(s,a)), s in cal(S)
+  π_(k+1)(s) = "arg max"_π sum_a π(a|s) underbrace(sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_k(s'), quad q_k (s,a)), s in cal(S)
 $
 
 ~~~~The optimal policy solution is
@@ -1206,25 +1358,25 @@ $
     0 #h(1em) a != a_k^*(s)
   )
 $
-where $a_k^*(s) = "arg max"_a q_k(a,s)$. \
+where $a_k^*(s) = "arg max"_a q_k (s,a)$. $q_k (s, a)$是在状态 $s$ 处选 $a$ 后用 $v_k$​ 估计未来”的动作价值。\
 $π_(k+1)$ is called a *greedy policy*, since it simply selects the greatest $q$-value.
+（注意：$max_pi$​ 是实际上是逐分量取最大。就是对每个状态 $s$，我们独立地选一个动作，使那个分量的值最大，每个状态可以独立决策）
 
-\
 \
 - - *Step 2: value update*
 
-~~~~The elementwise form of
+~~~~The elementwise form is :
 $
   v_(k+1) = r_(π_(k+1)) + gamma P_(π_(k+1)) v_k
 $
-is
+
 $
   v_(k+1)(s) = sum_a π_(k+1)(a|s) underbrace(sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_k(s'), quad q_k(s,a)), s in cal(S)
 $
 
 ~~~~Since $π_(k+1)$ is greedy, the above equation is simply
 $
-  v_(k+1)(s) = max_a q_k(s,a)
+  v_(k+1)(s) = max_a q_k (s,a)
 $
 
 
@@ -1238,8 +1390,10 @@ $
 - *Procedure summary:*
 
 #rect[
-  *$ v_k(s) -> q_k(s,a) -> "greedy policy" π_(k+1)(a|s) \
-  -> "new value" v_(k+1)(s) = max_a q_k(s,a) $*
+  #text(fill: red)[
+    *$ v_k (s) -> q_k (s,a) -> "greedy policy" π_(k+1)(a|s) \
+    -> "new value" v_(k+1)(s) = max_a q_k (s,a) $*
+  ]
 ]
 \
 \
@@ -1253,16 +1407,15 @@ $
 ~~~~While $v_k$ has not converged in the sense that $||v_k - v_(k-1)||$ is greater than a predefined small threshold, for the $k$th iteration, do:
 
 #rect[
-  ~~~~ For every state $s in cal(S)$, do:\
+  ~~~~For every state $s in cal(S)$, do:\
   ~~~~~~~~For every action $a in cal(A)(s)$, do:\
-  ~~~~~~~~~~~~*q-value*: $q_k(s,a) = sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_k(s')$\
-  ~~~~~~~~*Maximum action value*: $a_k^*(s) = "arg max"_a q_k(s,a)$\
-  ~~~~~~~~*Policy update*: $π_(k+1)(a|s) = 1$ if $a = a_k^*$, and $π_(k+1)(a|s) = 0$ otherwise\
-  ~~~~~~~~*Value update*: $v_(k+1)(s) = max_a q_k(s,a)$
+  ~~~~~~~~~~~~*q-value*（计算出每一个动作的动作值）: $q_k (s,a) = sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_k (s')$\
+  ~~~~~~~~*Maximum action value*（找到使动作值最大的动作）: $a_k^*(s) = "arg max"_a q_k (s,a)$\
+  ~~~~~~~~*Policy update*（根据贪心动作更新策略）: $π_(k+1)(a|s) = 1$ if $a = a_k^*$, and $π_(k+1)(a|s) = 0$ otherwise\
+  ~~~~~~~~*Value update*: $v_(k+1)(s) = max_a q_k (s,a)$
 ]
 
 
-\
 \
 \
 \
@@ -1455,7 +1608,7 @@ $
 ~~~~While the policy has not converged, for the $k$th iteration, do:
 
 #rect[
-  ~~~~~~~~① *Policy evaluation*:\
+  ~~~~① *Policy evaluation*:\
   ~~~~~~~~Initialization: an arbitrary initial guess $v_(π_k)^((0))$\
   ~~~~~~~~While $v_(π_k)^((j))$ has not converged, for the $j$th iteration, do:\
   ~~~~~~~~~~~~For every state $s in cal(S)$, do:
@@ -1464,7 +1617,7 @@ $
   $
   $ sum_a π_k(a|s) [ sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_(π_k)^((j))(s') ] $
 
-  ~~~~~~~~② *Policy improvement*:\
+  ~~~~② *Policy improvement*:\
   ~~~~~~~~For every state $s in cal(S)$, do:\
   ~~~~~~~~~~~~For every action $a in cal(A)(s)$, do:
   $
@@ -1484,7 +1637,7 @@ $
 
 === 3. Truncated policy iteration algorithm
 \
-- Compare value iteration and policy iteration
+- *Compare value vs. policy iteration*
 
 The two algorithms are very similar:
 \
@@ -1518,7 +1671,7 @@ VU = value update.
   [3) Policy:], [$π_1 = "arg max"_π (r_π + gamma P_π v_(π_0))$], [$π_1 = "arg max"_π (r_π + gamma P_π v_0)$],
   table.hline(),
   // 第四行
-  [4) Value:], [$v_(π_1) = r_(π_1) + gamma P_(π_1) v_(π_1)$], [$v_1 = r_(π_1) + gamma P_(π_1) v_0$],
+  [4) *Value*:], [$v_(π_1) = r_(π_1) + gamma P_(π_1) v_(π_1)$], [$v_1 = r_(π_1) + gamma P_(π_1) v_0$],
   table.hline(),
   // 第五行
   [5) Policy:], [$π_2 = "arg max"_π (r_π + gamma P_π v_(π_1))$], [$π'_2 = "arg max"_π (r_π + gamma P_π v_1)$],
@@ -1532,16 +1685,16 @@ VU = value update.
 
 - They start from the same initial condition, and the first three steps are the same. (Step 3 gives the same policy in both algorithms.)\
 
-- The fourth step differs:
+- #text(fill: red)[The fourth step differs]:
   - In *policy iteration*, solving $v_(π_1) = r_(π_1) + gamma P_(π_1) v_(π_1)$ requires an *iterative* algorithm (an embedded infinite number of iterations to give the solution of Bellman equation).
   - In *value iteration*, $v_1 = r_(π_1) + gamma P_(π_1) v_0$ is a *one-step* iteration.
 - Consequently, $v_(π_1) >= v_1$ because $v_(π_1) >= v_(π_0)$.
 
 \
 #figure(
-  image("lec4_truncated.png", width: 100%),
+  image("images/lec4_truncated.png", width: 100%),
 )
-~~~~Therefore, the difference between value, truncated policy, policy iteration is mainly in the number of iterative steps of solving the Bellman equation.\
+~~~~Therefore, the difference between value, truncated policy, policy iteration is mainly in *the number of iterative steps of solving the Bellman equation*.\
 ~~~~They just use different levels of solutions to update the policy(greedy), and then use the new policy to calculate the new $v$, and do all these steps iteratively.
 \
 \
@@ -1550,7 +1703,7 @@ VU = value update.
 - Thus we introduce *truncated policy iteration*.
 
 #figure(
-  image("lec4_truncated_policy_iteration_pseudocode.png", width: 100%),
+  image("images/lec4_truncated_policy_iteration_pseudocode.png", width: 100%),
 )
 \
 \
@@ -1571,7 +1724,7 @@ for every $j = 0,1,2,dots$.
 
 ~~~~The convergence figure is like this:\
 #figure(
-  image("lec4_value_convergence.png", width: 50%),
+  image("images/lec4_value_convergence.png", width: 70%),
 )
 ~~~~The convergence proof of PI is based on that of VI. Since VI converges, we know PI converges.
 
@@ -1584,7 +1737,7 @@ for every $j = 0,1,2,dots$.
 
 *Summary:*
 #figure(
-  image("lec4_summary.png", width: 100%),
+  image("images/lec4_summary.png", width: 100%),
 )
 
 
@@ -1615,7 +1768,11 @@ for every $j = 0,1,2,dots$.
 === 1. Motivating example: MC estimation
 \
 ~~~~Monte Carlo estimation refers to a broad class of techniques that rely on repeated random sampling to solve approximation problems.\
-~~~~It does not require the model.\
+~~~~*It does not require the model.*\
+\
+\
+\
+\
 \
 
 *Law of Large Numbers*\
@@ -1643,8 +1800,6 @@ value are defined as expectations of random variables!
 \
 \
 \
-\
-\
 
 === 2. MC Basic Algorithm
 \
@@ -1663,15 +1818,20 @@ $
 $
 
 ~~~~The key is $q_(π_k)(s,a)$! (Because the greedy policy will choose the greatest $q$)
+
 \
 \
 \
+
 - *Two expressions of action value*:
 
 - - *Expression 1 requires the model*:
   $
     q_(π_k)(s,a) = sum_r p(r|s,a) r + gamma sum_(s') p(s'|s,a) v_(π_k)(s')
   $
+  需要知道奖励模型 $p(r∣s,a)$ 和状态转移模型 $p(s′∣s,a)$ 还需要知道 $v_(pi_k)(s′)$，而 $v_(pi_k)$​​ 本身也需要模型来求解。在这之后再通过 $v_(pi_k)$ 与模型来求出动作价值 $q_pi_k (s, a)$
+
+\
 
 - - *Expression 2 does not require the model*:
   $
@@ -1679,13 +1839,17 @@ $
   $
 
 #rect[
-  ~~~~Idea to achieve model-free RL: \
-  ~~~~We can use expression 2 to calculate $q_(π_k)(s,a)$ based on _data_ (samples or experiences)!
+  ~~~~Idea to achieve model-free RL : \
+  ~~~~We can use expression 2 to calculate $q_(π_k)(s,a)$ based on _data_ (samples or experiences) !
 ]
 
 \
 \
-\
+
+
+
+
+
 - *The procedure of Monte Carlo estimation of action values*:
 
 ① Starting from $(s,a)$, following policy $π_k$, generate an episode.\
@@ -1694,9 +1858,9 @@ $
 $
   q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ]
 $
-④ Suppose we have a set of episodes and hence ${g^((j))}(s,a)}$. Then,
+④ Suppose we have a set of episodes and hence ${g^((j))(s,a)}$. Then,
 $
-  q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ] approx 1/N sum_(i=1)^N g^((i))}(s,a).
+  q_(π_k)(s,a) = EE[ G_t | S_t = s, A_t = a ] approx 1/N sum_(i=1)^N {g^((i))(s,a)}
 $
 
 ~~~~Fundamental idea: When model is unavailable, we can use _data_.
@@ -1704,6 +1868,9 @@ $
 \
 \
 \
+\
+\
+
 - *MC basic*
 
 ~~~~Description of the algorithm:
@@ -1711,28 +1878,35 @@ $
 #rect[
   ~~~~Given an initial policy $π_0$, there are two steps at the $k$th iteration.
 
-  - - Step 1: *policy evaluation*. This step is to #underline[_obtain $q_(π_k)(s,a)$ for all $(s,a)$_]. Specifically, for each action-state pair $(s,a)$, run an infinite number of (or sufficiently many) episodes. The #underline[average] of their returns is used to approximate $q_(π_k)(s,a)$.
+  - - *Step 1: policy evaluation*. This step is to #underline[_obtain $q_(π_k)(s,a)$ for all $(s,a)$_]. Specifically, for each action-state pair $(s,a)$, run an infinite number of (or sufficiently many) episodes（按照 $pi_k$ 选取动作）. The #underline[average] of their returns is used to approximate $q_(π_k)(s,a)$.
 
-  - - Step 2: *policy improvement*. This step is to solve $π_(k+1)(s) = "arg max"_π sum_a π(a|s) q_(π_k)(s,a)$ for all $s in cal(S)$. The greedy optimal policy is $π_(k+1)(a_k^* | s) = 1$ where $a_k^* = "arg max"_a q_(π_k)(s,a)$.
+  - - *Step 2: policy improvement*. This step is to solve $π_(k+1)(s) = "arg max"_π sum_a π(a|s) q_(π_k)(s,a)$ for all $s in cal(S)$. The greedy optimal policy is $π_(k+1)(a_k^* | s) = 1$ where $a_k^* = "arg max"_a q_(π_k)(s,a)$.
 ]
+\
+\
+\
+
 ~~~~Exactly the same as the policy iteration algorithm, except:
+
 - - Estimate $q_(π_k)(s,a)$ directly, instead of solving $v_(π_k)(s)$.
 
 
 #figure(
-  image("lec5_MCbasic_pseudocode.png", width: 100%),
+  image("images/lec5_MCbasic_pseudocode.png", width: 100%),
 )
 
 
+\
+\
 
 #rect[
-  MC Basic is a variant of the policy iteration algorithm.
+  *MC Basic is a variant of the policy iteration algorithm.*
 
   - The model-free algorithms are built up based on model-based ones. It is, therefore, necessary to understand model-based algorithms first before studying model-free algorithms.
 
   - MC Basic is useful to reveal the core idea of MC-based model-free RL, but not practical due to *_low efficiency_*.
 
-  - Why does MC Basic estimate *_action values_* instead of *_state values_*? That is because state values cannot be used to improve policies directly. When models are not available, we should directly estimate action values.
+  - Why does MC Basic estimate *_action values_* instead of *_state values_*? That is because *state values cannot be used to improve policies directly*. When models are not available, we should directly estimate action values.
 
   - Since policy iteration is convergent, the convergence of MC Basic is also guaranteed to be convergent given sufficient episodes.
 ]
@@ -1743,7 +1917,7 @@ $
 \
 \
 \
-\
+
 
 === 3. MC Exploring Starts
 \
@@ -1759,11 +1933,7 @@ $
   - This is what the MC Basic algorithm does.
   - Disadvantage: #underline[Not fully utilize the data.]
 
-
-
-
-
-#pagebreak()
+\
 
 
 
@@ -1772,7 +1942,7 @@ $
 ~~~~The episode also visits other state-action pairs.
 
 #figure(
-  image("lec5_MC_exploring_stpairs.png", width: 100%),
+  image("images/lec5_MC_exploring_stpairs.png", width: 100%),
 )
 
 
@@ -1789,7 +1959,7 @@ $
   #rect[
     *Improvements: Data-efficient methods*:\
     ① *first-visit method*\
-    ② *every-visit method*
+    ~~② *every-visit method*
   ]]
 \
 
@@ -1799,7 +1969,7 @@ $
 
   - The problem of this method is that the agent has to wait until all episodes have been collected.
 \
-- - ② The second method uses the return of a _single episode_ to approximate the action value.
+- - ② The second method *uses the return of a _single episode_ to approximate the action value*.
   - In this way, we can improve the policy _episode-by-episode_.
 
 \
@@ -1820,6 +1990,8 @@ Will the second method cause problems?
 \
 \
 \
+\
+\
 
 - *MC exploring starts*
 \
@@ -1827,28 +1999,23 @@ Will the second method cause problems?
 
 
 #figure(
-  image("lec5_MC_exploring_starts.png", width: 100%),
+  image("images/lec5_MC_exploring_starts.png", width: 100%),
 )
 
 \
-\
-\
-\
-\
+
 #rect[
   Q: What is *exploring starts*?\
   A: Exploring Starts (in Monte Carlo methods) is the assumption that *every episode has a non-zero probability of starting with any state-action pair $(s,a)$*. In theory, this allows us to begin a trajectory from any arbitrary state and action.
 ]
 
+\
+\
+\
 
 
 
-#pagebreak()
-
-
-
-
-- Why do we need to consider exploring starts?
+- - *Why do we need to consider exploring starts?*
 
 ~~~~① In theory, only if every action value for every state is well explored, can we select the optimal actions correctly.\
 ~~~~On the contrary, if an action is not explored, this action may happen to be the optimal one and hence be missed.
@@ -1860,14 +2027,13 @@ Will the second method cause problems?
 ~~~~Can we remove the requirement of exploring starts? We next show that we can do that by using _*soft policies*_.
 
 \
-\
-\
-\
-\
-\
-\
-\
-\
+
+
+
+
+
+
+
 
 === 4. MC without exploring starts
 \
@@ -1888,7 +2054,7 @@ Will the second method cause problems?
 What soft policies will we use? \
 Answer: *$epsilon$-greedy policies*
 
-- What is an $epsilon$-greedy policy?
+- - *What is an $epsilon$-greedy policy?*
 #align(center)[
   #rect[
     $
@@ -1901,13 +2067,13 @@ Answer: *$epsilon$-greedy policies*
 ~~~~where $epsilon in [0,1]$ and $|cal(A)(s)|$ is the number of actions for $s$.
 \
 
-- - The chance to choose the greedy action is always _greater_ than other actions, because
-  $
-    1 - epsilon / (|cal(A)(s)|) (|cal(A)(s)| - 1)) = 1 - epsilon + frac(epsilon, |cal(A)(s)|) >= epsilon / (|cal(A)(s)|).
-  $
+~~~~The chance to choose the greedy action is always _greater_ than other actions, because
+$
+  1 - epsilon / (|cal(A)(s)|) (|cal(A)(s)| - 1)) = 1 - epsilon + frac(epsilon, |cal(A)(s)|) >= epsilon / (|cal(A)(s)|).
+$
 \
 \
-- Why use $epsilon$-greedy? \
+- - *Why use $epsilon$-greedy?*
 ~~~~Balance between *_exploitation_*(greedy) and *_exploration_*(less greedy).\
 
 ~~~~① When $epsilon = 0$, it becomes greedy! \
@@ -1915,19 +2081,22 @@ Answer: *$epsilon$-greedy policies*
 ~~~~② When $epsilon = 1$, it becomes a uniform distribution. \
 ~~~~More exploration but less exploitation.
 
-\
-\
 
-- How to embed $epsilon$-greedy into the MC-based RL algorithms?
+
+
+
+- *How to embed $epsilon$-greedy into the MC-based RL algorithms?*
+
+\
 
 - - *Originally*, the _policy improvement step_ in MC Basic and MC Exploring Starts is to solve
 $
-  π_(k+1)(s) = "arg max"_(π in Pi) sum_a π(a|s) q_(π_k)(s,a).
+  π_(k+1)(s) = arg max_(π in Pi) sum_a π(a|s) q_(π_k)(s,a).
 $
 where #underline[$Pi$ denotes the set of all possible policies].
 \
 
-~~~~The optimal policy here is
+~~~~The optimal policy here is (deterministic) :
 $
   π_(k+1)(a|s) = cases(
     1 #h(1em)"if" a = a_k^*,
@@ -1938,16 +2107,13 @@ where $a_k^* = "arg max"_a q_(π_k)(s,a)$.
 
 
 
-
-#pagebreak()
-
-
+\
 
 
 
 - - *Now*, the _policy improvement step_ is changed to solve
 $
-  π_(k+1)(s) = "arg max"_(π in Pi_epsilon) sum_a π(a|s) q_(π_k)(s,a),
+  π_(k+1)(s) = arg max_(π in Pi_epsilon) sum_a π(a|s) q_(π_k)(s,a),
 $
 where #underline[$Pi_epsilon$ denotes the set of all $epsilon$-greedy policies *_with a fixed value of $epsilon$_*.]
 
@@ -1959,29 +2125,23 @@ $
   )
 $
 
-~~~~① MC $epsilon$-Greedy is the s*_ame_* as that of MC Exploring Starts except that the former uses $epsilon$-greedy policies.\
+~~~~① MC $epsilon$-Greedy is the *_same_* as that of MC Exploring Starts except that the former uses $epsilon$-greedy policies.\
 
 ~~~~② It does not require exploring starts, but still requires to visit all state-action pairs in a different form.
 \
 \
 #figure(
-  image("lec5_MC_epsilon_greedy.png", width: 100%),
+  image("images/lec5_MC_epsilon_greedy.png", width: 100%),
 )
 
-Notice: we use *_every-visit_* here because of the _sufficiently long_ episodes could contain many visits to a certain $(s, a)$.
+~~~~Notice : we use *_every-visit_* here because of the _sufficiently long_ episodes could contain many visits to a certain $(s, a)$.
 
 \
 \
 \
-\
-\
-\
-\
-\
-\
 
-- Exploring Ability
-\
+- *Exploring Ability*
+
 ~~~~When ε = 1, the policy (uniform distribution) has the strongest
 exploration ability.
 \
@@ -1989,22 +2149,30 @@ exploration ability.
 ~~~~When ε is small, the exploration ability of the policy is also small.
 
 \
-- Compared to greedy policies : \
-~~~~① The advantage of ε-greedy policies is that they have stronger
-exploration ability so that the exploring starts condition is not required.\
+
+
+
+- *Compared to greedy policies :*
+~~~~① *_The advantage of ε-greedy policies is that they have stronger
+exploration ability so that the exploring starts condition is not required._* (用“策略自身的随机性”代替了“外部强制的 exploring starts”)\
 
 ~~~~② The disadvantage is that ε-greedy polices are not optimal in general (we can only show that there always exist greedy policies that are optimal).\
-~~~~The final policy given by the MC ε-Greedy algorithm is only optimal in the set Πε of all ε-greedy policies.\
+~~~~The final policy given by the MC ε-Greedy algorithm is only optimal in the set $Pi_epsilon$ of all ε-greedy policies. （注意 $Pi_epsilon$ 只是 $Pi$ 的一个子集）\
 ~~~~ε cannot be too large.
 \
 ~~~~In practical, we 'd set $epsilon$ to a _small_ value so that the final policy given is similar to that given by the optimal greedy policy.
 
 \
 
-- Consistency
 
-~~~~The action of the biggest prob taken in the optimal $epsilon$-greedy policy is _perhaps_ in consistency with the optimal greedy policy.
+
+- *Consistency*
+
+~~~~The action of the biggest prob taken in the optimal $epsilon$-greedy policy is _perhaps_ in consistency with the optimal greedy policy. \
+
+~~~~全局最优策略 $pi^*$ 是在 $Pi$ 里面最优的策略，而 $pi_epsilon^*$ 只是在 $Pi_epsilon$ 里面最优的策略。所以二者里面概率最大的动作“可能”相同（$epsilon$-greedy里面的随机性可能会导致选择一些并不是全局最优的动作）
 \
+
 ~~~~As $epsilon$ grow bigger, that consistency descend!(that's why when we use $epsilon$-greedy we have to apply a small $epsilon$ !)
 \
 
@@ -2054,7 +2222,7 @@ We already know from the last lecture:\
 \
 
 Why do we care about mean estimation so much?\
-~~~~Many values in RL such as state/action values are defined as means.
+~~~~*_Many values in RL such as state/action values are defined as means._*
 
 \
 \
@@ -2096,7 +2264,7 @@ $
     *$ w_(k+1) = w_k - 1/k (w_k - x_k). $*
   ]]
 \
-~~~~This is an incremental form of calculation of $overline(x)$.
+~~~~This is an _incremental form_ of calculating $overline(x)$.
 
 
 ~~~~An advantage of this algorithm is that a mean estimate can be obtained _immediately_ once a sample is received. Then, the mean estimate can be used for other purposes immediately.\
@@ -2120,7 +2288,7 @@ $
   ]]
 where $1/k$ is replaced by $alpha_k > 0$.
 
-- - Does this algorithm still converge to the mean $EE[X]$? We will show that the answer is yes if ${alpha_k}$ satisfy some mild conditions.
+- - Does this algorithm still converge to the mean $EE[X]$? We will show that the answer is yes if ${alpha_k}$ satisfy some *_mild conditions_*.
 
 - - We will also show that this algorithm is a special *SA algorithm* and also a special *_stochastic gradient descent algorithm_*.
 
@@ -2153,7 +2321,7 @@ where $1/k$ is replaced by $alpha_k > 0$.
 
 
 
-- Problem statement
+- *Problem statement*
 
 ~~~~Suppose we would like to find the root of the equation
 $
@@ -2175,13 +2343,13 @@ $
 
 - - If the expression of $g$ or its derivative is known, there are many numerical algorithms that can solve this problem.\
 
-- - What if the expression of the function $g$ is *unknown*? For example, _*the function is represented by an artificial neuron network*_.
+- - What if the expression of the function $g$ is *unknown* ?（黑箱） For example, _*the function is represented by an artificial neuron network*_.
 
 \
 \
 \
 
-- The Robbins-Monro (RM) algorithm can solve this problem:
+- *The Robbins-Monro (RM) algorithm can solve this problem :*
 #align(center)[
   #rect[
     *$ w_(k+1) = w_k - a_k tilde(g)(w_k, eta_k), k = 1,2,3,dots $*]]
@@ -2213,9 +2381,9 @@ This algorithm relies on data:\
 
 - *Convergence property*
 \
-- - Illustrative example
+- - *Illustrative example*
 
-Solve:
+Solve :
 $g(w) = tanh(w - 1)$ \
 The true root of $g(w) = 0$ is $w^* = 1$.
 
@@ -2228,7 +2396,7 @@ $
 since $tilde(g)(w_k, eta_k) = g(w_k)$ when $eta_k = 0$.
 
 #figure(
-  image("lec6_RM_convergence_example.png", width: 60%),
+  image("images/lec6_RM_convergence_example.png", width: 80%),
 )
 
 
@@ -2248,9 +2416,9 @@ Intuition: $w_(k+1)$ is closer to $w^*$ than $w_k$.
 \
 
 
-- - Convegence theorem
+- - *Convegence theorem*
 #figure(
-  image("lec6_Robbins-Monro_theorem.png", width: 100%),
+  image("images/lec6_Robbins-Monro_theorem.png", width: 100%),
 )
 
 Explanation of the three conditions:
@@ -2270,14 +2438,14 @@ Explanation of the three conditions:
 \
 ~~~~③ $EE[eta_k | cal(H)_k] = 0$ and $EE[eta_k^2 | cal(H)_k] < infinity$\
 
-~~~~A special yet common case is that $\{eta_k\}$ is an *iid* stochastic sequence satisfying *$EE[eta_k] = 0$* and $EE[eta_k^2] < infinity$. The observation error $eta_k$ _is not required to be Gaussian_.
+~~~~A special yet common case is that $\{eta_k\}$ is an *iid* stochastic sequence satisfying *$EE[eta_k] = 0$* （均值为0）and $EE[eta_k^2] < infinity$（方差有限）. The observation error $eta_k$ _is not required to be Gaussian_.
 
 
 \
-\
-\
 
-Examine the second condition more closely:
+
+
+*Examine the second condition more closely :*
 $
   sum_(k=1)^infinity a_k^2 < infinity #h(2em)
   sum_(k=1)^infinity a_k = infinity
@@ -2285,7 +2453,8 @@ $
 
 ~~~~*①* First, $sum_(k=1)^infinity a_k^2 < infinity$ indicates that $a_k -> 0$ as $k -> infinity$.\
 
-~~~~Why is this condition important?
+~~~~Why is this condition important?\
+
 Since
 $
   w_(k+1) - w_k = -a_k tilde(g)(w_k, eta_k),
@@ -2332,39 +2501,48 @@ many RL algorithms. Although the second condition is not satisfied in this case,
 \
 \
 \
-
+\
+\
+\
+\
 - *RM's Application to mean estimation*
 \
 - - Recall that
+
 $
   w_(k+1) = w_k + alpha_k (x_k - w_k)
 $
+
 is the mean estimation algorithm.
 
 We know that\
 ~~~~If $alpha_k = 1/k$, then $w_(k+1) = 1/k sum_(i=1)^k x_i$.\
 ~~~~If $alpha_k$ is not $1/k$, the convergence was not analyzed.\
 
-Next, we show that this algorithm is *_a special case of the RM algorithm_*. Then, its convergence naturally follows.
+~~~~Next, we'll show that this algorithm is *_a special case of the RM algorithm_*. Then, its convergence naturally follows.
 
 \
 \
 
 - -
 ~~~~1) Consider a function:
+
 $
   g(w) := w - EE[X].
 $
+
 ~~~~Our aim is to solve $g(w) = 0$. If we can do that, then we can obtain $EE[X]$.
 \
 \
 
 ~~~~2) The observation(noisy samples) we can get is (because we can only obtain samples of $X$)
+
 $
   tilde(g)(w,x) := w - x,
 $
 
 Note that
+
 $
   tilde(g)(w, eta) = w - x & = w - x + EE[X] - EE[X] \
                            & = (w - EE[X]) + (EE[X] - x) \
@@ -2374,9 +2552,11 @@ $
 
 
 ~~~~3) The RM algorithm for solving $g(x) = 0$ is
+
 $
   w_(k+1) = w_k - alpha_k tilde(g)(w_k, eta_k) = w_k - alpha_k (w_k - x_k)
 $
+
 which is exactly the mean estimation algorithm. The convergence naturally follows.
 
 \
@@ -2405,15 +2585,14 @@ which is exactly the mean estimation algorithm. The convergence naturally follow
 
 \
 \
-\
-\
-\
-\
-\
-\
+
+
+
+
 - - Dvoretzky's theorem
+
 #figure(
-  image("lec6_Dvoretzky_theorem.png", width: 100%),
+  image("images/lec6_Dvoretzky_theorem.png", width: 100%),
 )
 
 ~~~~A more general result than the RM theorem. It can be used to prove the RM theorem.\
@@ -2587,8 +2766,8 @@ $
 $
 \
 ~~~~It is exactly the SGD algorithm.\
-~~~~Therefore, SGD is a special RM algorithm.
-
+~~~~Therefore, SGD is a special RM algorithm.\
+（所以我们通过 RM 收敛性直接证明了 SGD 算法的收敛性！）
 \
 \
 \
@@ -2597,7 +2776,7 @@ $
 \
 - - *SGD convergence theorem*
 #figure(
-  image("lec6_SGD_convergence_theorem.png", width: 100%),
+  image("images/lec6_SGD_convergence_theorem.png", width: 100%),
 )
 \
 
@@ -2664,6 +2843,10 @@ Note that
 \
 \
 \
+\
+\
+\
+
 - - *Illustrative example*
 \
 ~~~~*Setup*: $X in RR^2$ represents a random position in the plane. Its distribution is _uniform_ in the square area centered at the origin with the side length as 20. The true mean is $EE[X] = 0$. The mean estimation is
@@ -2671,7 +2854,7 @@ based on 100 iid samples ${x_i}^100_(i=1)$.
 
 
 #figure(
-  image("lec6_SGD_convergence_pattern_example.png", width: 80%),
+  image("images/lec6_SGD_convergence_pattern_example.png", width: 100%),
 )
 
 ~~~~Although the initial guess of the mean is far away from the true value, the SGD estimate can approach the neighborhood of the true value fast.\
@@ -2684,7 +2867,7 @@ based on 100 iid samples ${x_i}^100_(i=1)$.
 - - *A deterministic formulation*\
 \
 ~~~~The formulation of SGD we introduced above involves random variables($X$) and expectation. \
-~~~~One may often encounter a deterministic formulation of SGD without involving any random variables.
+~~~~One may often encounter *_a deterministic formulation of SGD without involving any random variables_*.
 \
 \
 \
@@ -2710,11 +2893,12 @@ $
 $
   w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k).
 $
+
 \
 
 
 
-#pagebreak()
+
 
 
 
@@ -2725,7 +2909,7 @@ Questions:\
 
 \
 
-~~~~A quick answer to the above questions is that we can *_introduce a random variable manually_* and convert the deterministic formulation to the stochastic formulation of SGD.
+~~~~A quick answer to the above questions is that we can *_introduce a random variable manually and convert the deterministic formulation to the stochastic formulation of SGD._*
 
 ~~~~In particular, suppose $X$ is _a random variable defined on the set ${x_i}_(i=1)^n$_. \
 ~~~~Suppose its probability distribution is _*uniform*_ such that
@@ -2742,16 +2926,12 @@ $
 
 #underline[(Note that the uniform sampling ensures $EE(eta) = 0$, satisfying the convergence condition of RM)]
 
-\
-\
-\
-\
-\
-\
-\
-\
+
+
+
+
 - *BGD, MBGD(minibatch), SGD*
-\
+
 - - Suppose we would like to minimize $J(w) = EE[ f(w, X) ]$, given a set of random samples ${x_i}_(i=1)^n$ of $X$. The BGD, SGD, MBGD algorithms solving this problem are, respectively,
 
 $
@@ -2764,7 +2944,7 @@ $
   w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k). (S G D)
 $
 \
-~~~~① In the BGD algorithm, all the samples are used in every iteration. When $n$ is large, $(1/n) sum_(i=1)^n nabla_w f(w_k, x_i)$ is close to the true gradient $EE[ nabla_w f(w_k, X) ]$.
+~~~~① In the BGD algorithm, *_all_* the samples are used in every iteration. When $n$ is large, $(1/n) sum_(i=1)^n nabla_w f(w_k, x_i)$ is close to the true gradient $EE[ nabla_w f(w_k, X) ]$.
 
 ~~~~② In the MBGD algorithm, *$I_k$ is a subset of ${1, dots, n}$ with the size as $|I_k| = m$*. The set $I_k$ is obtained by $m$ times iid samplings.
 
@@ -2780,7 +2960,7 @@ $
 \
 \
 (i) If $m = 1$, MBGD becomes SGD.\
-(ii) If $m = n$, MBGD *does not become BGD strictly speaking* because *MBGD uses randomly fetched $n$ samples* whereas *BGD uses all $n$ numbers*. In particular, MBGD may use a value in ${x_i}_(i=1)^n$ multiple times whereas BGD uses each number once.
+(ii) If $m = n$, MBGD *does not become BGD strictly speaking* because *MBGD uses randomly fetched $n$ samples*（有放回随机采样） whereas *BGD uses all $n$ numbers*（无放回使用全体）. In particular, MBGD may use a value in ${x_i}_(i=1)^n$ multiple times whereas BGD uses each number once.
 
 
 
@@ -2788,7 +2968,7 @@ $
 - - *Illustrative examples*
 
 ~~~~Given some numbers ${x_i}_(i=1)^n$, our _*aim is to*_\
-_*calculate the mean*_ $overline(x) = sum_(i=1)^n (x_i \/ n)$. This problem can be equivalently stated as the following optimization problem (to minimize the variance!):
+_*calculate the mean*_ $overline(x) = sum_(i=1)^n (x_i \/ n)$. This problem can be equivalently stated as the following *_optimization problem_* (to minimize the variance ! ) :
 
 $
   min_w J(w) = 1/(2n) sum_(i=1)^n || w - x_i ||^2
@@ -2808,7 +2988,7 @@ $
   w_(k+1) = w_k - alpha_k (w_k - x_k), (S G D)
 $
 \
-where $overline(x)_k^((m)) = sum_(j in I_k) x_j / m$.
+where $overline(x)_k^((m)) = sum_(j in I_k) 1 / m x_j$.
 
 \
 ~~~~Furthermore, if $alpha_k = 1/k$, the above equation can be solved as
@@ -2829,7 +3009,7 @@ $
 
 
 #figure(
-  image("lec6_minibatch_GD_example.png", width: 100%),
+  image("images/lec6_minibatch_GD_example.png", width: 100%),
 )
 
 
@@ -2856,10 +3036,13 @@ $
     w_(k+1) = w_k - alpha_k nabla_w f(w_k, x_k).
   $
 
+  #text(fill: red)[均值估计和 SGD 都是 RM 的特例]
+
   These results are useful:\
   ~~~~① We will see in the next chapter that the _temporal-difference_ learning algorithms can be viewed as stochastic approximation algorithms and hence have similar expressions.\
   ~~~~② They are important optimization techniques that can be applied to many other fields.
 ]
+
 
 
 
@@ -2960,15 +3143,17 @@ $
 $
 
 \
-\
+
 
 Quick summary:\
-~~~~The above three examples can all be solved by the _*RM*_ algorithm.\
+~~~~The above three examples can all be solved by the _*RM*_ algorithm. （注意：$e.g^3$ 实际上就是 Bellman equation的形式！）\
 ~~~~We will see that the TD algorithms have similar expressions.\
 
 
 
+
 #pagebreak()
+
 
 
 
@@ -2980,10 +3165,10 @@ Note that\
 \
 \
 \
-- *Algorithm description*
+- *1 ) Algorithm description*
 
 - - The data/experience required by the algorithm:\
-$(s_0, r_1, s_1, dots, s_t, r_(t+1), s_(t+1), dots)$ or ${(s_t, r_(t+1), s_(t+1))}_t$ generated following the given policy $π$ (a trajecotry).
+$(s_0, r_1, s_1, dots, s_t, r_(t+1), s_(t+1), dots)$ or ${(s_t, r_(t+1), s_(t+1))}_t$ （三元组数据）generated following the given policy $π$ (a trajecotry).
 \
 \
 - - *The TD learning algorithm is*
@@ -2999,7 +3184,7 @@ where $t = 0,1,2,dots$. Here, $s_t$ is the state at time $t$; $v_t (s_t)$ is the
 \
 \
 
-- *Algorithm properties*
+- *2 ) Algorithm properties*
 
 - - The TD algorithm can be annotated as
 
@@ -3009,19 +3194,19 @@ where $t = 0,1,2,dots$. Here, $s_t$ is the state at time $t$; $v_t (s_t)$ is the
 
 Here,
 $
-  overline(v)_t ≐ r_(t+1) + gamma v_t(s_(t+1))
+  overline(v)_t ≐ r_(t+1) + gamma v_t (s_(t+1))
 $
 is called the *TD target*, and
 $
-  delta_t ≐ v_t(s_t) - [ r_(t+1) + gamma v_t(s_(t+1)) ] = v_t(s_t) - overline(v)_t
+  delta_t ≐ v_t (s_t) - [ r_(t+1) + gamma v_t (s_(t+1)) ] = v_t (s_t) - overline(v)_t
 $
 is called the *TD error*.
 
-~~~~It is clear that the new estimate $v_(t+1)(s_t)$ is a combination of the current estimate $v_t(s_t)$ and the TD error.
+~~~~It is clear that the new estimate $v_(t+1)(s_t)$ is a combination of the current estimate $v_t (s_t)$ and the TD error.
 \
 \
 - - *First, why is $overline(v)_t$ called the TD target?*
-~~~~That is because *the algorithm drives $v(s_t)$ towards $overline(v)_t$*.
+~~~~That is because *the algorithm drives $v(s_t)$ towards $overline(v)_t$*. （最根本原因来自 Bellman 方程）
 
 To see that,
 $
@@ -3043,7 +3228,7 @@ $
 $
 ~~~~Therefore,
 $
-  | v_(t+1)(s_t) - overline(v)_t | <= | v_t(s_t) - overline(v)_t |,
+  | v_(t+1)(s_t) - overline(v)_t | <= | v_t (s_t) - overline(v)_t |,
 $
 which means $v(s_t)$ is driven towards $overline(v)_t$.
 
@@ -3060,7 +3245,7 @@ It's a difference between two consequent time steps and reflects the deficiency 
 
 ~~~~To see that, denote
 $
-  delta_(π,t) ≐v_π(s_t) - [ r_(t+1) + gamma v_π(s_(t+1)) ].
+  delta_(π,t) ≐v_π (s_t) - [ r_(t+1) + gamma v_π (s_(t+1)) ].
 $
 Note that
 $
@@ -3089,11 +3274,11 @@ $
 \
 \
 
-- *The idea of TD algorithm*
+- *3 ) The idea of TD algorithm*
 
 #rect[
-  Q: What does this TD algorithm do mathematically?\
-  A: *It solves the Bellman equation of a given policy $π$ without model.*]
+  Q: *What does this TD algorithm do mathematically ?*\
+  A: #text(fill: red)[*It solves the Bellman equation of a given policy $π$ without model.*]]
 
 ~~~~We'll explore on the proof below.\
 \
@@ -3112,7 +3297,7 @@ $
                   & = EE[ v_π (S') | S = s ],
 $
 where $S'$ is the next state, we can rewrite (4) as
-*$ v_π (s) = EE[ R + gamma v_π (S') | S = s ], #h(0.5em) s in cal(S). #h(0.5em) (5) $*
+#text(fill: red)[*$ v_π (s) = EE[ R + gamma v_π (S') | S = s ], #h(0.5em) s in cal(S). #h(0.5em) (5) $*]
 \
 ~~~~Equation (5) is another expression of the Bellman equation. It is sometimes called the _*Bellman expectation equation*_, an important tool to design and analyze TD algorithms.
 
@@ -3153,28 +3338,35 @@ where $v_k (s)$ is the estimate of $v_π (s)$ at the $k$th step; $r_k, s'_k$ are
 ~~~~To _remove_ the two assumptions in the RM algorithm, we can modify it.
 
 ~~~~① One modification is that ${(s, r, s')}$ is changed to *${(s_t, r_(t+1), s_(t+1))}$* so that the algorithm can utilize the sequential samples in an episode.\
-~~~~② Another modification is that $v_π (s')$ is replaced by an estimate of it (*$v_k (s_k^')$*) because we don't know it in advance.
+~~~~② Another modification is that $v_π (s')$ is replaced by an estimate of it (*$v_k (s_k^')$*) because we don't know it in advance.\
 
+~~~~TD 算法就是在无模型条件下，用 RM 算法求解 Bellman 期望方程。通过用轨迹中的顺序样本和自举估计，去掉了 RM 算法的两个不切实际的假设，最终得到的一个实用的算法。
 \
 \
+\
+\
+\
+\
+\
 
-- - *Algoritm convergence*
+- *4 ) Algoritm convergence*
 #figure(
-  image("lec7_TD_convergence.png", width: 100%),
+  image("images/lec7_TD_convergence.png", width: 100%),
 )
 
-Remarks\
+Remarks :\
 
 ~~~~① This theorem says the state value can be found by the TD algorithm *for a given policy $π$*.\
 
-~~~~② $sum_t alpha_t (s) = infinity$ and $sum_t alpha_t^2(s) < infinity$ *must be valid for all $s in cal(S)$*. At time step $t$, if $s = s_t$ which means that $s$ is visited at time $t$, then $alpha_t (s) > 0$; otherwise, $alpha_t (s) = 0$ for all the other $s != s_t$. That requires every state must be visited an infinite (or sufficiently many) number of times.\
+~~~~② $sum_t alpha_t (s) = infinity$ and $sum_t alpha_t^2(s) < infinity$ *must be valid for all $s in cal(S)$*. At time step $t$, if $s = s_t$ which means that $s$ is visited at time $t$, then $alpha_t (s) > 0$; otherwise, $alpha_t (s) = 0$ for all the other $s != s_t$. （注：在某个时刻 $t$，只有被访问的那个状态的学习率非零，其他状态的学习率都是 0）That requires every state must be visited an infinite (or sufficiently many) number of times.（这样每个状态才能都收敛！）\
 
 ~~~~③ *The learning rate $alpha$ is often selected as a small constant*. In this case, the condition that $sum_t alpha_t^2(s) < infinity$ is invalid anymore. When $alpha$ is constant, it can still be shown that the algorithm converges in the sense of expectation sense.
 
-\
-\
 
-- - *Comparison between TD learning and MC learning*
+
+
+
+- *5 ) Comparison between TD learning and MC learning*
 
 ~~~~While TD learning and MC learning are both model-free, what are the advantages and disadvantages of TD learning compared to MC learning?
 
@@ -3196,8 +3388,12 @@ Remarks\
       any initial guess],
 
     [#v(0.5em)*Low estimation variance*: TD is lower than MC because it has
-      _fewer random variables_. For instance, Sarsa requires $R_(t+1),S_(t+1),A_(t+1)$. However the mean is biased because bootstrapping depends on the initial guesses],
-    [#v(0.5em)*High estimation variance*: To estimate $q_pi (s_t, a_t)$, we need samples of $R_(t+1) + gamma R_(t+2) + gamma^2 R_(t+3) + ...$. Suppose the length of each episode is L. There are $|cal(A)|^L$ possible episodes. Without initial guesses, the expectation is an unbiased estimation.],
+      _fewer random variables_. For instance, Sarsa requires $R_(t+1),S_(t+1),A_(t+1)$. \
+
+      However *the mean is biased* because bootstrapping depends on the initial guesses],
+    [#v(0.5em)*High estimation variance*: To estimate $q_pi (s_t, a_t)$, we need samples of $R_(t+1) + gamma R_(t+2) + gamma^2 R_(t+3) + ...$. Suppose the length of each episode is L. There are $|cal(A)|^L$ possible episodes.\
+
+      Without initial guesses, the expectation is *an unbiased estimation*.],
   ),
 )
 
