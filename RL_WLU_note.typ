@@ -3397,6 +3397,37 @@ Remarks :\
   ),
 )
 
+\
+\
+
+=== 3. TD Learning of Action Values : Sarsa
+\
+- 1 ) Algorithm
+
+~~~~First, our aim is to estimate the action values of a given policy $pi$.\
+~~~~Suppose we have some experience $\{(s_t, a_t, r_(t+1), s_(t+1), a_(t+1))\}_t$.\
+~~~~We can use the following Sarsa algorithm to estimate the action values:
+
+#text(fill: red)[
+  $
+    q_(t+1)(s_t, a_t) &= q_t (s_t, a_t) - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - [ r_(t+1) + gamma q_t (s_(t+1), a_(t+1)) ] ]\
+    q_(t+1)(s, a) &= q_t (s, a), quad forall (s, a) != (s_t, a_t),
+  $]
+
+where $t = 0, 1, 2, ...$.
+
+~~~~实际上就是在 TD 算法中把 $v(s_t)$ 换为 $q(s_t, a_t)$，按照时间步的增加来更新一个 $(s_t, a_t)$ 对应的 action value
+
+~~~~① $q_t (s_t, a_t)$ is an estimate of $q_pi (s_t, a_t)$;\
+~~~~② $alpha_t (s_t, a_t)$ is the learning rate depending on $s_t, a_t$.
+
+
+
+
+
+
+
+
 
 
 
@@ -3410,5 +3441,9 @@ Remarks :\
 
 
 #pagebreak()
+
+
+
+
 
 
