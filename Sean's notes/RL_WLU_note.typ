@@ -3402,7 +3402,7 @@ Remarks :\
 
 === 3. TD Learning of Action Values : Sarsa
 \
-- 1 ) Algorithm
+- *1 ) Sarsa Algorithm*
 
 ~~~~First, our aim is to estimate the action values of a given policy $pi$.\
 ~~~~Suppose we have some experience $\{(s_t, a_t, r_(t+1), s_(t+1), a_(t+1))\}_t$.\
@@ -3421,6 +3421,528 @@ where $t = 0, 1, 2, ...$.
 ~~~~① $q_t (s_t, a_t)$ is an estimate of $q_pi (s_t, a_t)$;\
 ~~~~② $alpha_t (s_t, a_t)$ is the learning rate depending on $s_t, a_t$.
 
+\
+
+- - Why is this algorithm called Sarsa? That is because each step of the algorithm involves $(s_t, a_t, r_(t+1), s_(t+1), a_(t+1))$. Sarsa is the abbreviation of state-action-reward-state-action.
+
+- - What is the relationship between Sarsa and the previous TD learning algorithm? \
+  ~~~~We can obtain Sarsa by replacing the state value estimate $v(s)$ in the TD algorithm with the action value estimate $q(s, a)$. As a result, *Sarsa is an action-value version of the TD algorithm.*
+
+- What does the Sarsa algorithm do mathematically? The expression of Sarsa suggests that it is a stochastic approximation algorithm solving the following equation:
+  $
+    q_pi (s, a) = E[ R + gamma q_pi (S', A') | s, a ], quad forall s, a.
+  $
+  *This is another expression of the Bellman equation expressed in terms of action values.*
+
+
+
+- *2 ) Convergence*
+
+#figure(
+  image("images/Ch7_Sarsa_convergence_theorem.png", width: 100%),
+)
+
+Remarks :\
+~~~~This theorem says the action value can be found by Sarsa for a given policy $pi$.\
+
+(the convergence is the same as TD learning)
+
+\
+
+~~~~所以 Sarsa 所做的只是对一个既定的策略找到其 action value，这一步相当于 policy evaluation ，要改进现有的策略我们还需进行 policy improvement，结合之后的算法也称为 Sarsa .
+
+
+\
+\
+
+- 3 ) *Combined Sarsa*
+
+#figure(
+  image("images/Ch7_policy_searching_Sarsa.png", width: 100%),
+)
+
+~~~~最后更新得一个 $epsilon$-greedy 策略，选取 $q$-value 最大的动作。
+
+\
+*Remarks about Sarsa* :\
+① The policy of $s_t$ is updated immediately after $q(s_t, a_t)$ is updated. This is based on the idea of generalized policy iteration.\
+② The policy is $epsilon$-greedy instead of greedy to well balance exploitation and exploration.
+
+
+*Core idea and complication* :\
+① The core idea is simple: that is to use an algorithm to solve the Bellman equation of a given policy.\
+② The complication emerges when we try to find optimal policies and work efficiently.
+
+\
+\
+
+- *4 ) Sarsa —— Example*
+
+~~~~与之前的网格世界例子不同，现在我们的目标只是要求从一个特定点出发到达目标点的最优路径。（而非从所有点出发的最优路径），所以最后有些点还未收敛到其最优策略。
+
+#figure(
+  image("images/Ch7_Sarsa_example.png", width: 60%),
+)
+
+~~~~还可以画出探索过程中 reward 与 episode length 图 :
+
+#figure(
+  image("images/Ch7_Sarsa-exaple_reward_length_figure.png", width: 85%),
+)
+
+（这一项任务已经以作业+答案形式布置到 Sarsa example 中，可以自行编程完成练习 ！）
+
+\
+\
+\
+\
+\
+\
+\
+
+=== 4. TD Learning of Action Values : Expected Sarsa
+
+#text(fill: red)[
+  $
+    q_(t+1)(s_t, a_t) &= q_t (s_t, a_t) - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - ( r_(t+1) + gamma EE[ q_t (s_(t+1), A) ] ) ]\
+    q_(t+1)(s, a) &= q_t (s, a), quad forall (s, a) != (s_t, a_t),
+  $
+]
+where
+$
+  EE[ q_t (s_(t+1), A) ] = sum_a pi_t (a|s_(t+1)) q_t (s_(t+1), a) =^· v_t (s_(t+1))
+$
+is the expected value of $q_t (s_(t+1), a)$ under policy $pi_t$.
+\
+\
+\
+- *1 ) Compared to Sarsa :*\
+
+① *_The TD target is changed_* ~from \
+$r_(t+1) + gamma q_t (s_(t+1), a_(t+1))$ as in Sarsa to \
+$r_(t+1) + gamma EE[ q_t (s_(t+1), A) ]$ as in Expected Sarsa.\
+
+② Need more computation. But it is beneficial in the sense that it reduces the estimation variances because it reduces random variables in Sarsa from $\{s_t, a_t, r_(t+1), s_(t+1), a_(t+1)\}$ to $\{s_t, a_t, r_(t+1), s_(t+1)\}$.
+
+\
+\
+\
+\
+\
+- *2 ) What does the algorithm do mathematically ?*
+
+~~~~Expected Sarsa is a stochastic approximation algorithm for solving the following equation:
+
+$
+  q_pi (s, a) = EE[ R_(t+1) + gamma E_(A_(t+1) tilde pi(S_(t+1)))[ q_pi (S_(t+1), A_(t+1)) ] | S_t = s, A_t = a ]\
+  forall s, a.
+$
+
+~~~~The above equation is *another expression of the Bellman equation :*
+
+#text(fill: red)[
+  $
+    q_pi (s, a) = E[ R_(t+1) + gamma v_pi (S_(t+1)) | S_t = s, A_t = a ].
+  $
+]
+
+\
+(从 illustraive example 中可以看出 expected Sarsa 比 Sarsa 收敛更快，更平滑了)
+
+
+\
+
+
+
+
+
+
+
+
+=== 4. TD Learning of Action Values : $bold(n)$-step Sarsa
+
+\
+_*$n$-step Sarsa: can unify Sarsa and MC-learning*_
+
+\
+- 1 ) *Algorithm derivation*
+~~~~The definition of action value is
+$ q_pi (s, a) = EE[ G_t | S_t = s, A_t = a ] $
+
+~~~~The discounted return $G_t$ can be written in different forms as
+$
+         "Sarsa" arrow.l & G_t^((1)) = R_(t+1) + gamma q_pi (S_(t+1), A_(t+1)), \
+                         & G_t^((2)) = R_(t+1) + gamma R_(t+2) + gamma^2 q_pi (S_(t+2), A_(t+2)), \
+                         & dots \
+  "n-step Sarsa" arrow.l & G_t^((n)) = R_(t+1) + gamma R_(t+2) + dots + gamma^n q_pi (S_(t+n), A_(t+n)), \
+                         & dots \
+            "MC" arrow.l & G_t^((oo)) = R_(t+1) + gamma R_(t+2) + gamma^2 R_(t+3) + dots
+$
+
+~~~~It should be noted that $G_t = G_t^((1)) = G_t^((2)) = G_t^((n)) = G_t^((oo))$, where the superscripts merely indicate the different decomposition structures of $G_t$.
+
+\
+~~~~If we substitute the first decomposition method into the definition of action value, we get :\
+
+*① Sarsa aims to solve*
+$
+  q_pi (s,a) & = EE[ G_t^((1)) | s,a ] \
+             & = E[ R_(t+1) + gamma q_pi (S_(t+1), A_(t+1)) | s,a ]
+$
+
+~~~~这其实就是 Sarsa 所想要求解的 Bellman equation
+\
+
+~~~~同理代入第二种分解方式 ：\
+
+*② MC aims to solve :*
+$
+  q_pi (s,a) & = E[ G_t^((oo)) | s,a ] \
+             & = E[ R_(t+1) + gamma R_(t+2) + gamma^2 R_(t+3) + dots | s,a ]
+$
+\
+
+*③ And the intermediate algorithm $n$-step Sarsa aims to solve :*
+$
+  q_pi (s,a) & = E[ G_t^((n)) | s,a ] \
+             & = E[ R_(t+1) + gamma R_(t+2) + dots + gamma^n q_pi (S_(t+n), A_(t+n)) | s,a ]
+$
+
+\
+
+
+~~~~How to solve the equation above given by $n$-step Sarsa ? \
+
+~~~~We use the _corresponding stochastic approximation_ :
+
+$
+  & q_(t+1)(s_t, a_t) = q_t (s_t, a_t) \
+  & - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - [ r_(t+1) + gamma r_(t+2) + dots + gamma^n q_t (s_(t+n), a_(t+n)) ] ]
+$
+
+\
+\
+\
+
+~~~~$n$-step Sarsa is more general because it becomes the (one-step) Sarsa algorithm when $n = 1$ and the MC learning algorithm when $n = oo$.\
+~~~~Note that when $n = infinity$, we let $alpha_t equiv 1$, then :
+$
+  q_(t+1)(s_t, a_t) = r_(t+1) + gamma r_(t+2) + dots + gamma^n r_(t+n) + dots
+$
+~~~~So it becomes Monte Carlo learning. （用实际采样得到的完整回报 $G_t$ 来估计动作价值 $q_pi (s_t, a_t)$）
+
+
+\
+\
+\
+\
+
+
+- *2 ) Remarks*
+~~~~$n$-step Sarsa needs $(s_t, a_t, r_(t+1), s_(t+1), a_(t+1), dots, r_(t+n), s_(t+n), a_(t+n))$.
+\
+
+①  Since $(r_(t+n), s_(t+n), a_(t+n))$ has not been collected at time $t$, we are not able to implement n-step Sarsa at step $t$. However, we can wait until time $t + n$ to update the q-value of $(s_t, a_t)$ :
+$
+  &q_(t+n)(s_t, a_t) = q_(t+n-1)(s_t, a_t) \
+  &- alpha_(t+n-1)(s_t, a_t) [ q_(t+n-1)(s_t, a_t) - [ r_(t+1) + gamma r_(t+2) + dots + gamma^n q_(t+n-1)(s_(t+n), a_(t+n)) ] ]
+$
+
+
+② Since n-step Sarsa includes Sarsa and MC learning as two extreme cases, its performance is a blend of Sarsa and MC learning :\
+~~~~(i) If $n$ is large, its performance is close to MC learning and hence has a large variance but a small bias.\
+~~~~(ii) If $n$ is small, its performance is close to Sarsa and hence has a relatively large bias due to the initial guess and relatively low variance.\
+~~~~(iii) Finally, n-step Sarsa is also for policy evaluation. It can be combined with the policy improvement step to search for optimal policies.
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+=== 5. TD Learning of Optimal Action Values : ~~#text(fill: red)[$bold(Q)$-learning]
+\
+~~~~Sarsa can estimate the action values of a given policy. It must be combined with a PI step to find optimal policies.\
+~~~~Q-learning can directly estimate optimal action values and hence optimal policies.
+
+\
+- *1 ) Algorithm*
+
+The Q-learning algorithm is
+
+#text(fill: red)[
+  $
+    q_(t+1)(s_t, a_t) &= q_t (s_t, a_t) - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - [ r_(t+1) + gamma max_(a in A) q_t (s_(t+1), a) ] ]\
+    q_(t+1)(s, a) &= q_t (s, a), quad forall (s, a) != (s_t, a_t),
+  $]
+
+~~~~Q-learning is very similar to Sarsa. They are different only in terms of the *TD target* :\
+① The TD target in Q-learning is
+$
+  r_(t+1) + gamma max_(a in A) q_t (s_(t+1), a)
+$
+
+
+② The TD target in Sarsa is
+$
+  r_(t+1) + gamma q_t (s_(t+1), a_(t+1))
+$
+~~~~注意在后一项中 Q-learning 对 a 进行优化；相比之下 Sarsa 只是根据当时的策略来选择一个 $a_(t+1)$ ，而不是对 a 进行优化
+
+\
+\
+- *2 ) What does Q-learning do mathematically ?*
+
+~~~~It aims to solve
+$
+  q(s, a) = EE[ R_(t+1) + gamma max_(a) q(S_(t+1), a) | S_t = s, A_t = a ]\ forall s, a.
+$
+~~~~This is the Bellman optimality equation expressed in terms of action values.
+
+（注意：之前的 Sarsa 所做的数学问题相当于是给定一个策略 $pi$，然后去求解其对应的 Bellman equation 已得到该策略对应的 action value；而 Q-learning 对应的数学问题则是在求解一个 BOE ！）
+
+
+
+
+
+- *3 ) Off-policy vs. On-policy*
+\
+- - There exist two policies in a TD learning task :\
+
+① The _*behavior policy*_ is used to generate experience samples.\
+② The *_target policy_* is constantly updated toward an optimal policy.
+
+\
+- - On-policy vs off-policy :\
+
+① When the behavior policy is the same as the target policy, such kind of learning is called on-policy. （用当前策略与环境交互，交互之后改进，改进完之后再进行交互）\
+② When they are different, the learning is called off-policy. （用一个探索性强的策略与环境不断交互得到大量经验，用这些经验改进另一个策略，那个策略最终会收敛到一个最优策略）
+
+\
+- - Advantages of *_off-policy_* learning:
+① It can search for optimal policies based on the experience samples generated by any other policies.（有一点迁移学习的感觉） \
+② As an important special case, the behavior policy can be selected to be _exploratory_. For example, if we would like to estimate the action values of all state-action pairs, we can use a exploratory policy to
+generate episodes visiting every state-action pair sufficiently many times.
+
+\
+- - *Sarsa is on-policy*
+
+① First, Sarsa aims to solve the Bellman equation of a given policy $pi$ :
+$
+  q_pi (s, a) = E[ R + gamma q_pi (S', A') | s, a ], quad forall s, a.
+$
+where $R tilde p(R | s, a)$, $S' tilde p(S' | s, a)$, #text(fill: red)[$A' tilde pi(A' | S')$] （注意此处是给定的策略 $pi$）
+
+
+② Second, the algorithm is
+$
+  q_(t+1)(s_t, a_t) = q_t (s_t, a_t) - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - [ r_(t+1) + gamma q_t (s_(t+1), a_(t+1)) ] ],
+$
+which requires $(s_t, a_t, r_(t+1), s_(t+1), a_(t+1))$:
+
+(i) #text(fill: red)[If $(s_t, a_t)$ is given, then $r_(t+1)$ and $s_(t+1)$ do not depend on any policy!] （这两个与系统概率有关，我们通过采样来估计概率值）\
+(ii) #text(fill: red)[$a_(t+1)$ is generated following $pi_t (s_(t+1))$!]\
+(iii) #text(fill: blue)[$pi_t$ is both the target and behavior policy.]
+
+（可以配一个简单的手绘逻辑图）
+
+\
+
+- - *Monte Carlo learning is on-policy*
+
+① First, the MC method aims to solve :
+$
+  q_pi (s, a) = EE[ R_(t+1) + gamma R_(t+2) + dots | S_t = s, A_t = a ]\
+  forall s, a.
+$
+where the sample is generated following a given policy $pi$.
+
+② Second, the implementation of the MC method is
+$
+  q(s, a) approx r_(t+1) + gamma r_(t+2) + dots
+$
+
+~~~~A policy is used to generate samples, which is further used to estimate the action values of the policy. Based on the action values, we can improve the policy. It's obviously on-policy.
+
+
+\
+
+- - *Q-learning is #text(fill: red)[off-policy]*
+
+① First, Q-learning aims to solve the Bellman optimality equation :
+$
+  q(s, a) = EE[ R_(t+1) + gamma max_a q(S_(t+1), a) | S_t = s, A_t = a ], \
+  forall s, a.
+$
+
+~~~~BOE 对应的策略应当是最优策略，但是显式地不会含有任何策略。
+
+② Second, the algorithm is
+$
+  q_(t+1)(s_t, a_t) & = q_t (s_t, a_t) \
+                    & - alpha_t (s_t, a_t) [ q_t (s_t, a_t) - [ r_(t+1) + gamma max_(a in A) q_t (s_(t+1), a) ] ]
+$
+which requires $(s_t, a_t, r_(t+1), s_(t+1))$.
+
+\
+
+~~~~#text(fill: red)[If $(s_t, a_t)$ is given, then $r_(t+1)$ and $s_(t+1)$ do not depend on any policy !] （因为是由两个条件概率所决定的，而概率值可由采样估计得到）
+
+~~~~#text(
+  fill: blue,
+)[The behavior policy to generate $a_t$ from $s_t$ can be anything. The target policy will converge to the optimal policy.]
+
+
+
+\
+\
+\
+\
+\
+\
+\
+
+
+- *4 ) Q-learning Implementation*
+
+~~~~Since Q-learning is off-policy, it can be implemented in an *_either off-policy or
+on-policy_* fashion.
+
+\
+- - *On-policy version Pseudocode*
+
+#figure(
+  image("images/Ch7_Qlearning_on-policy_version.png", width: 100%),
+)
+
+~~~~这个与 Sarsa 算法基本相同，唯一不同就在 q-value update 那里 Sarsa 使用的是 $q_t (s_(t+1), a_(t+1))$
+
+\
+
+- - *Off-policy version Pseudocode*
+
+#figure(
+  image("images/Ch7_Qlearning_off-policy_version.png", width: 100%),
+)
+
+~~~~这里使用的是 $pi_b$ 产生的 experience 来更新 target policy $pi_T$ ，但是这里 $pi_T$ 不再是 $epsilon$-greedy 了，而是一个 greedy 策略。\
+~~~~为什么？ 因为我们之前使用 $epsilon$-greedy policy 的原因是更新完策略后还要继续用这个策略去生成 episodes 数据，所以我们希望它具有一定的探索性；而现在生成数据是 $pi_b$ 的任务，所以我们就选取最优策略为 greedy 就好。\
+~~~~随着 $q$ 的估计越来越准确，$pi_T$ 也会逐渐收敛到最优策略。
+
+\
+\
+\
+
+- *5 ) Examples*
+
+- - *Task description :*
+① The task in these examples is to _find an optimal policy for all the states_. （注意与之前 Sarsa 只需要找从一个特定出发点到目标点的最优路径不同，现在是要找所有状态下的最优路径！） \
+② The reward setting is $r_"boundary" = r_"forbidden" = -1$, and $r_"target" = 1$.
+
+~~~~The discount rate is $gamma = 0.9$. The learning rate is $alpha = 0.1$.
+
+~~~~*Ground truth* : an optimal policy and the corresponding optimal state values : （用于与待会儿 Q-learning 算出的结果进行比较）
+#figure(
+  image("images/Ch7_Qlearning_eg_ground_truth.png", width: 100%),
+)
+
+（以下是 shiyu Zhao 在 PPT 中给出的实验结果）
+
+#figure(
+  image("images/Ch7_Qlearning_eg_uniform_pi_b.png", width: 100%),
+)
+
+#figure(
+  image("images/Ch7_Qlearning_non-uniform_pi_b.png", width: 100%),
+)
+
+Conclusion :\
+~~~~探索性越强，探索越充分，最后才能很好地收敛得到一个最优的路径！
+
+\
+（准备自己搭建代码实践）
+
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+- *6 ) A unified point of view*
+
+~~~~All the algorithms we introduced in this lecture can be expressed in a unified expression:
+*$ #text(fill: red)[$q_(t+1)(s_t, a_t) = q_t (s_t, a_t) - alpha_t (s_t, a_t) [ q_t (s_t, a_t) -$] #text(fill: blue)[$overline(q)_t$] #text(fill: red)[\]] $*
+where *_$overline(q)_t$ is the TD target_*.
+
+\
+~~~~*Different TD algorithms have different $overline(q)_t$* :
+
+#table(
+  columns: 2,
+  [Algorithm], [*Expression of $overline(q)_t$*],
+  [Sarsa], [$overline(q)_t = r_(t+1) + gamma q_t (s_(t+1), a_(t+1))$],
+  [n-step Sarsa], [$overline(q)_t = r_(t+1) + gamma r_(t+2) + dots + gamma^n q_t (s_(t+n), a_(t+n))$],
+  [Expected Sarsa], [$overline(q)_t = r_(t+1) + gamma sum_a pi_t(a | s_(t+1)) q_t (s_(t+1), a)$],
+  [Q-learning], [$overline(q)_t = r_(t+1) + gamma max_a q_t (s_(t+1), a)$],
+  [Monte Carlo], [$overline(q)_t = r_(t+1) + gamma r_(t+2) + dots$],
+)
+
+~~~~The MC method can also be expressed in this unified expression by setting $alpha_t (s_t, a_t) = 1$ and hence $q_(t+1)(s_t, a_t) = overline(q)_t$.
+
+\
+~~~~All the algorithms can be viewed as stochastic approximation algorithms solving the Bellman equation or Bellman optimality equation :
+
+#table(
+  columns: 2,
+  [Algorithm], [Equation aimed to solve],
+  [Sarsa], [BE: $q_pi (s, a) = EE[ R_(t+1) + gamma q_pi (S_(t+1), A_(t+1)) | S_t = s, A_t = a ]$],
+  [n-step Sarsa],
+  [BE: $q_pi (s, a) = EE[ R_(t+1) + gamma R_(t+2) + dots + gamma^n q_pi (s_(t+n), a_(t+n)) | S_t = s, A_t = a ]$],
+
+  [Expected Sarsa],
+  [BE: $q_pi (s, a) = EE[ R_(t+1) + gamma E_(A_(t+1))[ q_pi (S_(t+1), A_(t+1)) ] | S_t = s, A_t = a ]$],
+
+  [Q-learning], [#text(fill: red)[BOE: $q(s, a) = EE[ R_(t+1) + gamma max_a q(S_(t+1), a) | S_t = s, A_t = a ]$]],
+  [Monte Carlo], [BE: $q_pi (s, a) = EE[ R_(t+1) + gamma R_(t+2) + dots | S_t = s, A_t = a ]$],
+)
 
 
 
