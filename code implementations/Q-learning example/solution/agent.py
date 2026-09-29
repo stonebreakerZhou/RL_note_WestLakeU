@@ -104,7 +104,7 @@ class QLearningAgent:
         # Replace the `None` below
         # Until you do, running the code raises
         #     TypeError: unsupported operand type(s) for *: 'float' and 'NoneType'
-        td_target = r + self.gamma * None  # <-- TODO 1: replace None
+        td_target = r + self.gamma * np.max(self.Q[s_next])  # <-- TODO 1: replace None
         td_error = td_target - self.Q[s, a]
         self.Q[s, a] += self.alpha * td_error
 
