@@ -3064,7 +3064,7 @@ $
 
 #place(top, scope: "parent", float: true)[
   #align(center + horizon)[  // horizon 让它垂直居中页顶区域，更美观
-    #text(font: "Georgia", weight: "bold", size: 24pt)[§ Lec VII]  //
+    #text(font: "Georgia", weight: "bold", size: 24pt)[§ Ch. VII]  //
     #v(0em)
     #line(length: 100%, stroke: 1pt)  // 可选：加一条装饰线
   ]
@@ -3888,9 +3888,9 @@ Conclusion :\
 ~~~~探索性越强，探索越充分，最后才能很好地收敛得到一个最优的路径！
 
 \
-（准备自己搭建代码实践）
+（自己已经搭建好代码实践 : Q-learning Example）
 
-\
+
 \
 \
 \
@@ -3958,14 +3958,225 @@ where *_$overline(q)_t$ is the TD target_*.
 
 
 
+#pagebreak()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#place(top, scope: "parent", float: true)[
+  #align(center + horizon)[  // horizon 让它垂直居中页顶区域，更美观
+    #text(font: "Georgia", weight: "bold", size: 24pt)[§ Ch. VIII]  //
+    #v(0em)
+    #line(length: 100%, stroke: 1pt)  // 可选：加一条装饰线
+  ]
+]
+
+== Value Function Approximation
+
+\
+\
+
+=== 1. Motivating Examples : Curve Fitting
+
+\
+
+- *Tabular representation*
+
+~~~~So far in our learning, state and action values are represented by tables.
+
+~~~~For example, we'd store action value in a tabular form :
+
+#table(
+  columns: 5,
+  [ ], [a_1], [a_2], [a_3], [...],
+  [s_1], [$q_pi (s_1, a_1)$], [$q_pi (s_1, a_2)$], [$q_pi (s_1, a_3)$], [...],
+  [$ dots.v $], [$ dots.v $], [$ dots.v $], [$ dots.v $], [$ dots.v $],
+  [s_9], [$q_pi (s_9, a_1)$], [$q_pi (s_9, a_2)$], [$q_pi (s_9, a_3)$], [...],
+)
+
+① Advantage: intuitive and easy to analyze\
+② Disadvantage: difficult to handle large or continuous state or action spaces. \
+Two aspects: 1) storage; 2) generalization ability
+
+\
+
+- *Consider an example* :
+~~~~Suppose there are one-dimensional states $s_1, dots, s_(|S|)$.\
+~~~~Their state values are $v_pi (s_1), dots, v_pi (s_(|S|))$, where $pi$ is a given policy.\
+~~~~Suppose $|S|$ is very large（状态空间很大） and we hope to use a simple curve to approximate these dots to save storage.
+
+（补一个示意图）
+
+~~~~为什么要考虑用曲线来拟合？因为曲线所需的参数个数少，而不需要用表格一一存储不同状态值。
+
+\
+
+- - First, we use the simplest straight line to fit the dots.
+
+Suppose the equation of the straight line is
+$
+  hat(v)(s, w) = a s + b = underbrace(mat(s, 1, delim: "["), phi.alt^T (s)) underbrace(mat(a; b, delim: "["), w) = phi.alt^T (s)#h(0.3em) w
+$
+where\
+~~~~$w$ is the parameter vector\
+~~~~$phi(s)$ is the feature vector of $s$\
+~~~~$hat(v)(s, w)$ is linear in $w$
+
+\
+~~~~Benefits :\
+① The tabular representation needs to store $|S|$ state values. Now, we need to only store two parameters $a$ and $b$.（所需存储参数减少）\
+② Every time we would like to use the value of $s$, we can calculate $phi.alt^T (s) w$.\
+③ Such a benefit is not free. It comes with a cost: the state values can not be represented accurately. This is why this method is called value approximation.
+
+\
+
+- - Second, we can also fit the points using a second-order curve:
+$
+  hat(v)(s, w) = a s^2 + b s + c = underbrace(mat(s^2, s, 1, delim: "["), phi.alt^T (s)) underbrace(mat(a; b; c, delim: "["), w) = phi.alt^T (s) w.
+$
+
+In this case,\
+~~~~The dimensions of $w$ and $phi.alt(s)$ increase, but the values may be fitted more accurately.\
+~~~~Although $hat(v)(s, w)$ is nonlinear in $s$, it is linear in $w$. The nonlinearity is contained in $phi.alt(s)$.
+
+\
+
+- - Third, we can use even higher-order polynomial curves or other complex curves to fit the dots.
+
+① Advantage: It can better approximate.\
+② Disadvantage: It needs more parameters.
+
+\
+
+- - Quick summary:
+~~~~*Idea* : Approximate the state and action values using parameterized functions : $hat(v)(s, w) approx v_pi (s)$ where $w in RR^m$ is the parameter vector.\
+~~~~*Key difference* : How to access and assign the value of $v(s)$\
+~~~~*Advantage* :\
+① *_Storage_* : The dimension of $w$ may be much less than $|S|$.\
+② *_Generalization_* : When a state $s$ is visited, the parameter $w$ is updated so that the values of some other unvisited states can also be updated.
+
+（画一个简单示意图说明泛化能力）
+
+
+\
+\
+\
+\
+\
+
+
+=== 2. Algorithm for State Value Estimation
+
+\
+
+- *1 ) Objective Function*
+
+~~~~Introduce in a more formal way :\
+~~~~Let $v_pi (s)$ and $hat(v)(s, w)$ be the true state value and a function for approximation.\
+~~~~Our goal is to find an optimal $w$ so that $hat(v)(s, w)$ can best approximate $v_pi (s)$ for every $s$.\
+~~~~This is a policy evaluation problem. Later we will extend to policy improvement.
+
+\
+
+~~~~To find the optimal $w$, we need two steps.\
+① The first step is to define an objective function.\
+② The second step is to derive algorithms optimizing the objective function.
+
+
+
+
+
+~~~~The objective function（其实也可视为损失函数） we use is MSE :
+$
+  J(w) = bb(E)[(v_pi (S) - hat(v)(S, w))^2].
+$
+
+~~~~Our goal is to find the best $w$ that can minimize $J(w)$.\
+~~~~The expectation is with respect to the random variable $S in cal(S)$.\
+~~~~What is the probability distribution of $S$?\
+~~~~This is often confusing because we have not discussed the probability distribution of states so far.
+
+\
+
+~~~~There are several ways to define the probability distribution of $S$.
+
+\
+- - The first way is to use a *_uniform distribution_*.
+
+~~~~That is to treat all the states to be equally important by setting the probability of each state as $1 / (|cal(S)|)$.\
+~~~~In this case, the objective function becomes
+$
+  J(w) & = bb(E)[(v_pi (S) - hat(v)(S, w))^2] \
+       & = 1 / (|cal(S)|) sum_(s in cal(S)) (v_pi (s) - hat(v)(s, w))^2.
+$
+~~~~Drawback :\
+~~~~The states may not be equally important. For example, some states may be rarely visited by a policy. Hence, this way does not consider the real dynamics of the Markov process under the given policy.
+
+\
+
+- - The second way is to use the *stationary distribution*.
+
+~~~~Stationary distribution is an important concept that will be frequently used in this course. In short, #underline[it describes the long-run behavior of a Markov process.]\
+
+~~~~Let $\{ d_pi (s) \}_(s in cal(S))$ denote the stationary distribution of the Markov process under policy $pi$. By definition, $d_pi (s) >= 0$ and $sum_(s in cal(S)) d_pi (s) = 1$.\
+
+~~~~The objective function can be rewritten as
+$
+  J(w) & = bb(E)[(v_pi (S) - hat(v)(S, w))^2] \
+       & = sum_(s in cal(S)) d_pi (s) (v_pi (s) - hat(v)(s, w))^2.
+$
+~~~~This function is a *weighted squared error*.\
+~~~~Since more frequently visited states have higher values of $d_pi (s)$, their weights in the objective function are also higher than those rarely visited states.
+
+\
+
+More explanation about stationary distribution :\
+~~~~Distribution: Distribution of the state\
+~~~~Stationary: Long-run behavior\
+
+Summary: after the agent runs a long time following a policy, the probability that the agent is at any state can be described by this distribution.
+
+\
+Remarks :\
+① Stationary distribution is also called *_steady-state distribution_*, or *_limiting distribution_*.\
+② It is critical to understand the value function approximation method.\
+③ It is also important for the policy gradient method in the next lecture.
+
+\
+
+- - Illustration for stationary distribution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 #pagebreak()
-
-
-
 
 
 

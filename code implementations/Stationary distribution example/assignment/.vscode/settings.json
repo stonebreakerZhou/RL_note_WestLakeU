@@ -1,0 +1,6 @@
+{
+    // Force VS Code's Ruff extension to use the local config.
+    // Without this, the extension may pick up a workspace-level config
+    // (or none), and complain about our import ordering.
+    "ruff.configuration": "${workspaceFolder}/pyproject.toml"
+}

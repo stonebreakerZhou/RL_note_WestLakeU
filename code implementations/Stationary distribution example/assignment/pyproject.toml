@@ -1,0 +1,25 @@
+# Minimal Ruff config for the Sarsa example practice.
+# Tells Ruff that `env` and `agent` are our own local modules, so it
+# won't complain about import ordering (Ruff I001).
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+# keep E (pycodestyle errors) + F (pyflakes) + I (isort); ignore everything else
+select = ["E", "F", "I"]
+# NOTE: the "unused parameter" warnings on TODO placeholders in agent.py come
+# from Pylance, not Ruff. Once the student fills in the TODOs, they go away.
+# No Ruff ignore needed here.
+
+[tool.ruff.lint.isort]
+known-first-party = ["env", "agent"]
+
+[tool.ruff.lint.per-file-ignores]
+# env.py has only `from __future__ import annotations` -- nothing for I001 to sort.
+"env.py" = ["I001"]
+# train.py: import order is already carefully chosen (matplotlib/numpy before
+# local agent/env). The IDE Ruff extension may not pick up known-first-party,
+# so silence I001 here as well to avoid false positives.
+"train.py" = ["I001"]
